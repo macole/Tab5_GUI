@@ -1,0 +1,52 @@
+{
+    "configurations": [
+        {
+            "name": "Arduino",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../Tab5_Arduino/libraries/**",
+                "${workspaceFolder}/../Tab5_Arduino/libraries/M5Unified/src/**",
+                "${workspaceFolder}/../Tab5_Arduino/libraries/M5GFX/src/**",
+                "${workspaceFolder}/../Tab5_Arduino/libraries/LovyanGFX/src/**",
+                "${workspaceFolder}/../Tab5_Arduino/libraries/lvgl/src/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/cores/esp32/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/tools/sdk/include/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32/include/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/libraries/**",
+                "${env:HOME}/Library/Arduino15/libraries/**",
+                "${env:HOME}/Documents/Arduino/libraries/**"
+            ],
+            "defines": [
+                "ARDUINO=10819",
+                "ARDUINO_ESP32_DEV",
+                "ARDUINO_ARCH_ESP32",
+                "ESP32",
+                "F_CPU=240000000L",
+                "ARDUINO_ESP32P4_DEV",
+                "ARDUINO_ARCH_ESP32P4",
+                "ESP32P4",
+                "__ets__",
+                "ICACHE_FLASH",
+                "LWIP_IPV4=1",
+                "LWIP_IPV6=0",
+                "ARDUINO_BOARD=\"ESP32P4 Dev Module\"",
+                "ARDUINO_VARIANT=\"esp32p4\"",
+                "ARDUINO_PARTITION=\"custom\""
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "${workspaceFolder}/../Tab5_Arduino/libraries",
+                    "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}
+
