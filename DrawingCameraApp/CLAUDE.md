@@ -89,7 +89,9 @@ idf.py build flash monitor
 
 ### Key Components
 - **Mooncake Framework**: Application lifecycle management and UI framework
-- **LVGL v9.2.0**: Graphics library for UI rendering  
+- **LVGL**: Graphics library for UI rendering
+  - Desktop build: LVGL v9.2.2 (via `repos.json`)
+  - ESP32-P4 build: LVGL v8.4.0 (via ESP-IDF component manager)
 - **HAL Interface**: Provides unified API for display, camera, IMU, power, audio, WiFi, and other hardware features
 - **Dependency Management**: `repos.json` and `fetch_repos.py` handle external dependencies
 
@@ -105,19 +107,23 @@ idf.py build flash monitor
 - **Registration**: Apps are registered in `app/apps/app_installer.h` via `mooncake::GetMooncake().installApp()`
 - **Thread Safety**: Always use `LvglLockGuard lock;` before LVGL operations
 
-### LVGL v9 API Notes
-When working with canvas/draw buffers, use the correct v9 API:
+### LVGL API Notes
+**注意**: デスクトップビルドではLVGL v9、ESP32-P4ビルドではLVGL v8が使用されます。コードは両方のバージョンに対応する必要があります。
+
+デスクトップビルド（LVGL v9）でのバッファアクセス:
 ```cpp
-// Correct v9 API for buffer access
+// LVGL v9 API for buffer access
 lv_draw_buf_t* buf = lv_canvas_get_draw_buf(canvas);
-uint32_t width = buf->header.w;   // NOT lv_draw_buf_get_width()
-uint32_t height = buf->header.h;  // NOT lv_draw_buf_get_height()
-uint8_t* data = buf->data;        // NOT lv_draw_buf_get_buf()
+uint32_t width = buf->header.w;
+uint32_t height = buf->header.h;
+uint8_t* data = buf->data;
 
 // Always use locks for thread safety
 LvglLockGuard lock;
 // ... LVGL operations here ...
 ```
+
+ESP32-P4ビルド（LVGL v8）では、異なるAPIを使用する場合があります。プラットフォーム固有の実装を確認してください。
 
 ### Hardware Features (ESP32-P4)
 - 1280x720 display with touch input

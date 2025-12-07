@@ -59,7 +59,7 @@ cmake .. && make -j8
 1. **依存関係の取得**（初回のみ、または依存関係が更新された場合）
 
 ```bash
-cd /Users/masato/Documents/Arduino/tmp/DrawingCameraApp
+cd DrawingCameraApp
 python3 fetch_repos.py
 ```
 
@@ -166,3 +166,9 @@ https://protopedia.net/prototype/6776
 - https://components.espressif.com/components/espressif/esp_lvgl_port
 - https://github.com/jarzebski/Arduino-INA226
 - https://github.com/boschsensortec/BMI270_SensorAPI
+
+---
+
+**最終更新日**: 2025年12月7日  
+**対象デバイス**: M5Stack Tab5 (ESP32-P4)  
+**開発環境**: ESP-IDF v5.4.1 / v5.5.1, CMake, SDL2 (デスクトップビルド用)
