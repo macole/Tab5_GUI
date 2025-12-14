@@ -68,7 +68,11 @@ void ui_Screen1_screen_init(void)
     lv_label_set_text(ui_Label3, "nikthefix");
     lv_obj_set_style_text_font(ui_Label3, &ui_font_conthrax24, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Spinner2 = lv_spinner_create(ui_Screen1, 1000, 90);
+    // LVGL 9.xではlv_spinner_create()は引数なし
+    ui_Spinner2 = lv_spinner_create(ui_Screen1);
+    // 速度と角度は後で設定（必要に応じて）
+    // lv_spinner_set_anim_time(ui_Spinner2, 1000);
+    // lv_spinner_set_arc_length(ui_Spinner2, 90);
     lv_obj_set_width(ui_Spinner2, 50);
     lv_obj_set_height(ui_Spinner2, 50);
     lv_obj_set_x(ui_Spinner2, -583);

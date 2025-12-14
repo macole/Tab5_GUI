@@ -8,7 +8,7 @@ Dependencies:
 
 ESP-Arduino >= V3.2 (tested also working with 3.3.0-alpha1)
 M5GFX >= V0.2.8
-LVGL = V8.3.11
+LVGL = V9.4 (updated from V8.3.11)
 
 lv_conf.h:
 
@@ -29,7 +29,7 @@ USB Mode: "Hardware CDC and JTAG"
 
 Notes:
 
-This demo uses a software rotate in order to give us landscape mode (disp_drv.rotated = LV_DISP_ROT_90;)
+This demo uses a software rotate in order to give us landscape mode (lv_display_set_rotation(disp, LV_DISPLAY_ROTATION_90))
 I've not been able to find the make and model of the display unit used in the Tab5 so I can't be sure if it supports a hardware accelerated rotation.
 The display driver chip is ili9881c with native portrait orientation.
 
@@ -50,53 +50,45 @@ M5GFX display;
 uint16_t count = 0;
 bool automate = false;
  
-static lv_disp_draw_buf_t draw_buf;
+// LVGL 9.xでは描画バッファはlv_display_set_buffers()で設定
 static lv_color_t *buf;
 
+// LVGL 9.xのディスプレイと入力デバイスのハンドル
+static lv_display_t* lvgl_display = NULL;
+static lv_indev_t* lvgl_indev = NULL;
 
-
-void lv_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
+// LVGL 9.xのディスプレイドライバ：画面への描画転送
+void display_flush_cb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map)
 {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
-    display.pushImageDMA(area->x1, area->y1, w, h, (uint16_t *)&color_p->full); 
-    lv_disp_flush_ready(disp);
+    display.pushImageDMA(area->x1, area->y1, w, h, (uint16_t*)px_map); 
+    lv_display_flush_ready(disp);
 }
 
-
-
-void my_rounder(lv_disp_drv_t *disp_drv, lv_area_t *area)
-{
-    if (area->x1 % 2 != 0)
-        area->x1 += 1;
-    if (area->y1 % 2 != 0)
-        area->y1 += 1;
-
-    uint32_t w = (area->x2 - area->x1 + 1);
-    uint32_t h = (area->y2 - area->y1 + 1);
-    if (w % 2 != 0)
-        area->x2 -= 1;
-    if (h % 2 != 0)
-        area->y2 -= 1;
+// DMA転送の完了を待つコールバック
+void display_flush_wait_cb(lv_display_t* disp) {
+    display.waitDMA();
 }
 
-
-
-static void lv_indev_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
+// LVGL 9.xの入力デバイスドライバ：タッチ入力の処理
+void touchpad_read_cb(lv_indev_t* indev, lv_indev_data_t* data)
 {  
-     lgfx::touch_point_t tp[3];
-     uint8_t touchpad = display.getTouchRaw(tp,3);
-       if (touchpad > 0)
-       {
-          data->state = LV_INDEV_STATE_PR;
-          data->point.x = tp[0].x;
-          data->point.y = tp[0].y;
-          //Serial.printf("X: %d   Y: %d\n", tp[0].x, tp[0].y); //for testing
-       }
-       else
-       {
-        data->state = LV_INDEV_STATE_REL;
-       }
+    lgfx::touch_point_t tp[3];
+    // getTouch()を使用すると、setRotation()に合わせて自動的に座標変換される
+    uint8_t touchpad = display.getTouch(tp, 3);
+    if (touchpad > 0)
+    {
+        data->state = LV_INDEV_STATE_PRESSED;  // LVGL 9.xではPRESSED
+        // getTouch()は既に回転後の座標を返すので、そのまま使用
+        data->point.x = tp[0].x;
+        data->point.y = tp[0].y;
+        //Serial.printf("Touch: (%d, %d)\n", tp[0].x, tp[0].y); //for testing
+    }
+    else
+    {
+        data->state = LV_INDEV_STATE_RELEASED;  // LVGL 9.xではRELEASED
+    }
 }
 
 
@@ -109,30 +101,64 @@ void setup()
     display = M5.Display;
 
     Serial.begin(115200);//for debug
+    
+    // ディスプレイを270度回転（横向き：1280x720）
+    // 注意: Tab5の物理ディスプレイは縦向き（720x1280）だが、横向きで使用する
+    display.setRotation(3);
+    
+    // 実際のディスプレイサイズを確認
+    int32_t actualWidth = display.width();
+    int32_t actualHeight = display.height();
+    Serial.printf("Display size after rotation: %dx%d\n", actualWidth, actualHeight);
 
     /*Initialize LVGL*/
     lv_init();
-    buf = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * LVGL_LCD_BUF_SIZE, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    lv_disp_draw_buf_init(&draw_buf, buf, NULL, LVGL_LCD_BUF_SIZE);
-    static lv_disp_drv_t disp_drv;
-    lv_disp_drv_init(&disp_drv);
-    disp_drv.hor_res = EXAMPLE_LCD_H_RES;
-    disp_drv.ver_res = EXAMPLE_LCD_V_RES;
-    //disp_drv.rounder_cb = my_rounder; 
-    disp_drv.flush_cb = lv_disp_flush;
-    disp_drv.draw_buf = &draw_buf;
-    disp_drv.sw_rotate = 1;  
-    disp_drv.rotated = LV_DISP_ROT_90; 
-    lv_disp_drv_register(&disp_drv);
+    
+    // 描画バッファをPSRAMに確保
+    // 注意: 横向き（1280x720）として使用するため、バッファサイズを計算
+    #define LCD_HORIZONTAL_RES 1280
+    #define LCD_VERTICAL_RES 720
+    uint32_t buf_size = LCD_HORIZONTAL_RES * LCD_VERTICAL_RES;
+    buf = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * buf_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (buf == NULL) {
+        Serial.println("Error: Failed to allocate LVGL buffer!");
+        return;
+    }
+    
+    // LVGL 9.x API: ディスプレイを作成（横向き：1280x720）
+    // 注意: M5.Display.setRotation(3)で270度回転しているので、
+    // LVGLは横向き（1280x720）として作成
+    lvgl_display = lv_display_create(LCD_HORIZONTAL_RES, LCD_VERTICAL_RES);
+    
+    // 色フォーマットを設定（RGB565、バイトスワップあり）
+    lv_display_set_color_format(lvgl_display, LV_COLOR_FORMAT_RGB565_SWAPPED);
+    
+    // 描画バッファを設定
+    lv_display_set_buffers(lvgl_display, buf, NULL, 
+                          sizeof(lv_color_t) * buf_size, 
+                          LV_DISPLAY_RENDER_MODE_FULL);
+    
+    // 描画転送コールバックを設定
+    lv_display_set_flush_cb(lvgl_display, display_flush_cb);
+    
+    // DMA転送の完了を待つコールバックを設定
+    lv_display_set_flush_wait_cb(lvgl_display, display_flush_wait_cb);
+    
+    // デフォルトディスプレイとして設定
+    lv_display_set_default(lvgl_display);
+    
+    // 注意: LVGLの回転は不要（M5.Display側で回転済み）
 
-
-
-    /*Initialize touch*/
-    static lv_indev_drv_t indev_drv;
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_POINTER;
-    indev_drv.read_cb = lv_indev_read;
-    lv_indev_drv_register(&indev_drv);     
+    /*Initialize touch - LVGL 9.x API*/
+    lvgl_indev = lv_indev_create();
+    if (lvgl_indev == NULL) {
+        Serial.println("Error: Failed to create input device!");
+        return;
+    }
+    
+    lv_indev_set_type(lvgl_indev, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(lvgl_indev, touchpad_read_cb);
+    lv_indev_set_display(lvgl_indev, lvgl_display);     
 
 
 
@@ -146,21 +172,27 @@ void setup()
 
 void loop()
 {
-  lv_timer_handler();
-  delay(1);  
-
+    // LVGL 9.xではlv_timer_handler()を使用
+    uint32_t time_till_next = lv_timer_handler();
+    
     if(lv_obj_has_state(ui_Button1, LV_STATE_CHECKED)) automate = true;
     else automate = false;
     
     if(automate == true)
     {
-    lv_arc_set_value(ui_Arc1, count);
-    lv_label_set_text_fmt(ui_Label1, "%d", count);
-    count++;
-    if (count == 1000) count = 0; 
+        lv_arc_set_value(ui_Arc1, count);
+        lv_label_set_text_fmt(ui_Label1, "%d", count);
+        count++;
+        if (count == 1000) count = 0; 
     }
 
-    uint8_t brightness = lv_slider_get_value(ui_Slider1) ;
+    uint8_t brightness = lv_slider_get_value(ui_Slider1);
     display.setBrightness(brightness);
-
+    
+    // 待機時間を調整
+    if (time_till_next > 0 && time_till_next < 100) {
+        delay(time_till_next);
+    } else {
+        delay(1);
+    }
 }
