@@ -1,4 +1,4 @@
-# M5Stack Tab5 GUI プロジェクト（LVGL / Drawing Camera）
+# M5Stack Tab5 GUI プロジェクト
 
 このリポジトリは、M5Stack Tab5 向けの **GUI・LVGL アプリケーション** をまとめたものです。  
 Arduino スケッチ単体のサンプルは `Tab5_Arduino`、ネットワーク / Web / MQTT / Camera などのサンプルは `Tab5_Network` を参照してください。
@@ -9,124 +9,127 @@ Arduino スケッチ単体のサンプルは `Tab5_Arduino`、ネットワーク
 
 - **プロジェクト名**: M5Stack Tab5 GUI / LVGL サンプル集  
 - **対象デバイス**: M5Stack Tab5 (ESP32-P4)  
-- **主な技術**: LVGL, M5GFX / LovyanGFX, C++ アプリケーションフレームワーク  
+- **主な技術**: LVGL, M5Unified / M5GFX, Arduino IDE  
 
-GUI を用いた以下のようなパターンをカバーしています。
+GUI を用いた以下のようなアプリケーションを提供しています。
 
-- タッチ対応の高機能 GUI（ボタン・スライダー・リストなど）
+- LVGL を使用したタッチ対応の高機能 GUI（ボタン・スライダー・リストなど）
+- Square Line Studio でデザインした UI の実装例
 - 画像・フォントを多用したフロントエンド UI
-- カメラ映像との連携（DrawingCameraApp）
-- デスクトップ上でのエミュレーション実行（`platforms/desktop`）
+- RTC 連携による時計アプリケーション
 
 ---
 
 ## 📁 リポジトリ構造
 
-実ディレクトリ構成（簡略版）は以下の通りです。
+実ディレクトリ構成は以下の通りです。
 
 ```
 Tab5_GUI/
-├── DrawingCameraApp/            # カメラ連携 GUI アプリ（CMake プロジェクト）
-│   ├── app/
-│   │   ├── app.cpp, app.h      # アプリケーションエントリ
-│   │   ├── apps/               # 個別アプリ（ツール群）
-│   │   ├── assets/             # 画像・フォントなどのアセット
-│   │   │   ├── assets.h
-│   │   │   └── images/*.c
-│   │   ├── hal/                # ハードウェア抽象化レイヤー
-│   │   │   ├── hal.cpp
-│   │   │   └── hal.h
-│   │   └── shared/             # 共通ユーティリティ
-│   ├── platforms/
-│   │   ├── desktop/            # デスクトップ用ビルド設定
-│   │   └── tab5/               # Tab5 実機用ビルド設定（ESP-IDF）
-│   ├── lv_conf.h               # LVGL 設定
-│   ├── CMakeLists.txt
-│   └── README.md               # DrawingCameraApp 個別 README
+├── tab5_arduino_basic/          # LVGL ベーシックアプリケーション
+│   ├── tab5_arduino_basic.ino   # メインプログラム
+│   ├── ui.c, ui.h               # Square Line Studio 生成 UI コード
+│   ├── ui_Screen1.c             # 画面1の実装
+│   ├── ui_helpers.c/h           # UI ヘルパー関数
+│   ├── ui_events.h               # イベント定義
+│   ├── ui_comp_hook.c           # コンポーネントフック
+│   ├── ui_font_*.c              # フォントデータ
+│   ├── lv_conf.h                # LVGL 設定ファイル
+│   ├── CMakeLists.txt           # CMake 設定
+│   ├── partitions.csv           # パーティション設定
+│   ├── SLS_Project/             # Square Line Studio プロジェクト
+│   │   ├── Tab5_Basic.spj
+│   │   ├── Tab5_Basic.sll
+│   │   └── Themes.slt
+│   └── README.md                # 詳細なドキュメント
 │
-├── DroomMachine/                # Arduino 用 GUI デモ（フォント多数）
-│   ├── DroomMachine.ino
-│   ├── smallFont.h, tinyFont.h
-│   ├── midleFont.h, bigFont.h
-│   ├── NotoSansBold15.h
-│   └── Readme.md
-│
-├── Lvgl/                        # Arduino + LVGL の基本デモ
-│   ├── lvgl.ino                 # Tab5 上で動作する LVGL デモ
-│   ├── CMakeLists.txt
-│   ├── lv_conf.h                # LVGL 設定
-│   ├── ui.c, ui.h               # 自動生成された UI コード
-│   ├── ui_*.c                   # フォント・コンポーネント
-│   ├── LVGLEditorPro/           # GUI エディタ用プロジェクト (xml)
-│   └── SLS_Project/             # Square Line Studio プロジェクト
-│
-├── tab5_lvgl/                   # カスタム LVGL GUI サンプル一式
-│   ├── tab5_lvgl.ino
-│   ├── lv_conf.h
-│   ├── ui.c, ui.h, ui_*.c
-│   ├── SLS_Project/             # Square Line Studio プロジェクト（拡張版）
-│   └── README.md
-│
-├── Docs/                        # 共通ドキュメント・スクリプト
-│   ├── Arduino_Basic_Syntax_Guide.md
-│   ├── GPIO_Application_Guide.md
-│   ├── Manufacturing_Arduino_Samples.md
-│   ├── USB_Application_Guide.md
-│   ├── compile.sh               # Arduino 用コンパイルスクリプト
-│   └── monitor.sh               # シリアルモニタスクリプト
+├── tab5_flip_clock/             # パタパタ時計 / ニキシー管時計アプリ
+│   ├── tab5_flip_clock.ino      # メインプログラム
+│   ├── img_flip.h               # パタパタ時計用画像データ
+│   ├── img_nixie_tube.h         # ニキシー管時計用画像データ
+│   └── Readme.md                # 詳細なドキュメント
 │
 ├── LICENSE
 └── Readme.md                    # このファイル
 ```
 
-※ 旧 `WIFI/` ディレクトリの Wi-Fi GUI サンプルは、ネットワーク系リポジトリ `Tab5_Network` 側のサンプルと役割分担する形で整理しています。
-
 ---
 
-## 🚀 セットアップ（概要）
+## 🚀 セットアップ
 
-### 共通
+### 必要な環境
 
-- VS Code / Cursor + CMake / Ninja（`DrawingCameraApp` デスクトップビルド用）
-- Arduino IDE / Arduino CLI（`DroomMachine`, `Lvgl`, `tab5_lvgl` など Arduino スケッチ用）
-- ESP32-P4 ボードパッケージ（M5Stack Tab5 用）
+- **Arduino IDE 2.x** または **Arduino CLI**
+- **ESP32 Arduino Core >= 3.2** (M5Stack Tab5 用ボードパッケージ)
+- **M5Stack Tab5** (ESP32-P4)
 
-LVGL や M5 系ライブラリは `Tab5_Arduino` と共通です。
+### ライブラリのインストール
+
+Arduino IDE のライブラリマネージャーから、または Arduino CLI で以下のライブラリをインストールしてください。
 
 ```bash
 arduino-cli lib install "M5Unified@0.2.10"
-arduino-cli lib install "M5GFX@0.2.15"
-arduino-cli lib install "LovyanGFX@1.2.7"
 arduino-cli lib install "lvgl@8.3.11"
+```
+
+**注意**: M5Unified は M5GFX を含む統一ライブラリです。M5GFX を個別にインストールする必要はありません。
+
+### 追加のライブラリ（tab5_flip_clock 用）
+
+```bash
+arduino-cli lib install "ArtronShop_RX8130CE"
 ```
 
 ---
 
-## 🎨 代表的なサンプル
+## 🎨 サンプルアプリケーション
 
-- **DroomMachine**
-  - 複数フォントを使ったテキスト表示デモ
-  - シンプルな GUI 描画ロジックの参考になります
+### tab5_arduino_basic
 
-- **Lvgl/lvgl.ino**
-  - ボタン・スライダー・ラベルなど、基本的な LVGL ウィジェットを使用したデモ
-  - `lv_conf.h` と `ui.c / ui.h` を含む、Tab5 向け LVGL プロジェクトの最小構成例
+**LVGL を使用したベーシックな GUI アプリケーション**
 
-- **tab5_lvgl**
-  - Square Line Studio で設計した画面を Tab5 向けに展開した拡張 GUI デモ
-  - 複数画面・画像アセット・カスタムフォントをまとめて扱うサンプル
+- Square Line Studio でデザインした UI の実装例
+- ボタンによる自動カウント機能の ON/OFF
+- アーク（円形プログレスバー）とラベルによるカウンター表示
+- スライダーによる画面の明るさ調整
+- M5Unified を使用したシンプルな実装
 
-- **DrawingCameraApp**
-  - CMake + ESP-IDF ベースの GUI アプリケーション
-  - `platforms/desktop` で PC 上での動作確認が可能
-  - `platforms/tab5` で Tab5 実機向けビルドに対応
+**主な機能**:
+- LVGL と M5Unified の統合
+- タッチパネル入力のサポート
+- DMA 転送による高速描画
+- SPIRAM を使用した描画バッファの確保
+- 90度回転ディスプレイのサポート
+
+詳細は [`tab5_arduino_basic/README.md`](tab5_arduino_basic/README.md) を参照してください。
+
+### tab5_flip_clock
+
+**パタパタ時計 / ニキシー管時計アプリケーション**
+
+- RTC（RX8130CE）から正確な時刻を取得
+- 2つの表示モードを切り替え可能
+  - **パタパタ時計モード**: 数字がフリップするアニメーション効果付き
+  - **ニキシー管時計モード**: ニキシー管の温かみのあるオレンジ色の表示
+- 日付表示（年/月/日と曜日）
+- 時刻表示（時:分:秒）
+- 最適化された描画（変更があった数字のみ更新）
+
+**主な機能**:
+- RTC（RX8130CE）からの時刻取得
+- UTC から日本時間（JST）への自動変換
+- 画面サイズに基づく自動スケーリング
+- 滑らかな画像拡大（黒い筋なし）
+- コロンの点滅表示（1秒ごと）
+
+詳細は [`tab5_flip_clock/Readme.md`](tab5_flip_clock/Readme.md) を参照してください。
 
 ---
 
 ## 📖 関連リポジトリ
 
-- Arduino 単体サンプル: `Tab5_Arduino`
-- ネットワーク / Web / MQTT / Camera など: `Tab5_Network`
+- **Arduino 単体サンプル**: `Tab5_Arduino`
+- **ネットワーク / Web / MQTT / Camera など**: `Tab5_Network`
 
 ---
 
@@ -139,7 +142,12 @@ arduino-cli lib install "lvgl@8.3.11"
 
 ---
 
-**最終更新日**: 2025年12月7日  
-**対象デバイス**: M5Stack Tab5 (ESP32-P4)  
-**開発環境**: Arduino IDE / Arduino CLI + CMake / ESP-IDF
+## 🔗 参考資料
+
+- [LVGL 公式ドキュメント](https://docs.lvgl.io/)
+- [M5Unified GitHub](https://github.com/m5stack/M5Unified)
+- [M5GFX GitHub](https://github.com/m5stack/M5GFX)
+- [Square Line Studio](https://squareline.io/)
+- [M5Stack Tab5 公式ドキュメント](https://docs.m5stack.com/)
+
 
