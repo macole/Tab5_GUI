@@ -150,4 +150,27 @@ arduino-cli lib install "ArtronShop_RX8130CE"
 - [Square Line Studio](https://squareline.io/)
 - [M5Stack Tab5 公式ドキュメント](https://docs.m5stack.com/)
 
+---
+
+## 📚 参考・元リポジトリ
+
+このプロジェクトのプログラムは、以下のリポジトリやWebサイトを参考に作成されています。
+
+### tab5_flip_clock
+
+- **元リポジトリ**: [gijin77/M5Stack-Tab5-Nixie-Flip-Clock](https://github.com/gijin77/M5Stack-Tab5-Nixie-Flip-Clock)
+- **オリジナルコード**: 2025/05/23 By JK1VCK
+- **ブログ記事**: [gijin77のブログ](https://gijin77.blog.jp/archives/44667829.html)
+
+パタパタ時計 / ニキシー管時計アプリケーションは、上記のリポジトリを参考に実装されています。
+
+### tab5_arduino_basic
+
+- **元リポジトリ**: [nikthefix/M5Stack_Tab5_Arduino_Basic_LVGL_Demo](https://github.com/nikthefix/M5Stack_Tab5_Arduino_Basic_LVGL_Demo)
+- **LVGL公式ドキュメント**: [LVGL Documentation](https://docs.lvgl.io/)
+- **M5Stack公式ドキュメント**: [M5Stack Tab5 Documentation](https://docs.m5stack.com/)
+- **Square Line Studio**: [Square Line Studio](https://squareline.io/)
+
+LVGLとM5Unifiedを使用したベーシックなGUIアプリケーションは、上記のリポジトリと公式ドキュメントを参考に実装されています。
+
 
