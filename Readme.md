@@ -278,34 +278,45 @@ arduino-cli monitor -p /dev/cu.usbmodem21201
 
 ---
 
-## 🔗 参考資料
+## 🔗 参考リンク集
 
+このプロジェクトのサンプルは、以下の資料やWebサイトを参考に作成されています。
+
+### 公式ドキュメント・ツール
 - [LVGL 公式ドキュメント](https://docs.lvgl.io/)
+- [LVGL GitHub](https://github.com/lvgl/lvgl)
 - [M5Unified GitHub](https://github.com/m5stack/M5Unified)
 - [M5GFX GitHub](https://github.com/m5stack/M5GFX)
 - [Square Line Studio](https://squareline.io/)
 - [M5Stack Tab5 公式ドキュメント](https://docs.m5stack.com/)
 
----
+### サンプル別参考リンク
 
-## 📚 参考・元リポジトリ
-
-このプロジェクトのプログラムは、以下のリポジトリやWebサイトを参考に作成されています。
-
-### tab5_flip_clock
+#### tab5_flip_clock
 
 - **元リポジトリ**: [gijin77/M5Stack-Tab5-Nixie-Flip-Clock](https://github.com/gijin77/M5Stack-Tab5-Nixie-Flip-Clock)
 - **オリジナルコード**: 2025/05/23 By JK1VCK
-- **ブログ記事**: [gijin77のブログ](https://gijin77.blog.jp/archives/44667829.html)
+- **ブログ記事**: [gijin77のブログ - M5Stack Tab5でニキシー管時計](https://gijin77.blog.jp/archives/44667829.html)
+- **RTC ライブラリ**: [ArtronShop_RX8130CE GitHub](https://github.com/artronshop/ArtronShop_RX8130CE)
 
 パタパタ時計 / ニキシー管時計アプリケーションは、上記のリポジトリを参考に実装されています。
 
-### tab5_arduino_basic
+#### tab5_arduino_basic
 
 - **元リポジトリ**: [nikthefix/M5Stack_Tab5_Arduino_Basic_LVGL_Demo](https://github.com/nikthefix/M5Stack_Tab5_Arduino_Basic_LVGL_Demo)
 - **LVGL公式ドキュメント**: [LVGL Documentation](https://docs.lvgl.io/)
+- **LVGL チュートリアル**: [LVGL Getting Started](https://docs.lvgl.io/master/get-started/index.html)
 - **M5Stack公式ドキュメント**: [M5Stack Tab5 Documentation](https://docs.m5stack.com/)
 - **Square Line Studio**: [Square Line Studio](https://squareline.io/)
+- **Square Line Studio ドキュメント**: [SLS Documentation](https://docs.squareline.io/)
+
+LVGLとM5Unifiedを使用したベーシックなGUIアプリケーションは、上記のリポジトリと公式ドキュメントを参考に実装されています。
+
+---
+
+## 📚 参考資料
+
+上記の「参考リンク集」を参照してください。
 
 LVGLとM5Unifiedを使用したベーシックなGUIアプリケーションは、上記のリポジトリと公式ドキュメントを参考に実装されています。
 
