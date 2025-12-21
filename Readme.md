@@ -10,6 +10,7 @@ Arduino スケッチ単体のサンプルは `Tab5_Arduino`、ネットワーク
 - **プロジェクト名**: M5Stack Tab5 GUI / LVGL サンプル集  
 - **対象デバイス**: M5Stack Tab5 (ESP32-P4)  
 - **主な技術**: LVGL, M5Unified / M5GFX, Arduino IDE  
+- **総プロジェクト数**: 2個
 
 GUI を用いた以下のようなアプリケーションを提供しています。
 
@@ -80,6 +81,42 @@ arduino-cli lib install "lvgl@8.3.11"
 arduino-cli lib install "ArtronShop_RX8130CE"
 ```
 
+### ボード設定
+
+Arduino IDE または Arduino CLI で以下の設定を使用してください：
+
+- **Board**: ESP32P4 Dev Module
+- **USB CDC on boot**: Enabled
+- **Flash Size**: 16MB (128Mb)
+- **Partition Scheme**: Custom（各プロジェクト付属の`partitions.csv`を使用）
+- **PSRAM**: Enabled
+- **Upload Mode**: UART / Hardware CDC
+- **USB Mode**: Hardware CDC and JTAG
+
+Arduino CLI での設定例：
+
+```bash
+arduino-cli compile \
+  --fqbn esp32:esp32:esp32p4:PSRAM=enabled,FlashSize=16M,PartitionScheme=custom,CDCOnBoot=cdc,USBMode=hwcdc,UploadSpeed=921600 \
+  tab5_arduino_basic/tab5_arduino_basic.ino
+
+arduino-cli upload -p /dev/cu.usbmodem21201 \
+  --fqbn esp32:esp32:esp32p4:PSRAM=enabled,FlashSize=16M,PartitionScheme=custom,CDCOnBoot=cdc,USBMode=hwcdc,UploadSpeed=921600 \
+  tab5_arduino_basic/tab5_arduino_basic.ino
+```
+
+**注意**: PSRAM=enabled と PartitionScheme=custom は必須です。これらの設定を省くと、バックライトやフレームバッファ初期化に失敗し、画面が真っ暗になる場合があります。
+
+---
+
+## 📊 プロジェクト一覧（全2個）
+
+### LVGL GUIアプリケーション（2個）
+| No. | プログラム名 | 状態 | 主要機能 |
+|-----|-------------|------|----------|
+| 1 | tab5_arduino_basic | ✅ 完了 | LVGL基本GUI（ボタン、スライダー、アーク） |
+| 2 | tab5_flip_clock | ✅ 完了 | パタパタ時計/ニキシー管時計（RTC連携） |
+
 ---
 
 ## 🎨 サンプルアプリケーション
@@ -123,6 +160,105 @@ arduino-cli lib install "ArtronShop_RX8130CE"
 - コロンの点滅表示（1秒ごと）
 
 詳細は [`tab5_flip_clock/Readme.md`](tab5_flip_clock/Readme.md) を参照してください。
+
+---
+
+## 📊 プロジェクト統計
+
+- **総プログラム数**: 2個
+- **ドキュメント数**: 4個（README.md + 各プロジェクトReadme.md + 参考元リポジトリ情報）
+- **動作確認率**: 100%
+- **カテゴリ数**: 1カテゴリ（LVGL GUIアプリケーション）
+
+### 技術スタック
+- **GUI フレームワーク**: LVGL 8.3.11
+- **ハードウェアライブラリ**: M5Unified 0.2.10
+- **開発環境**: Arduino IDE 2.x / Arduino CLI
+- **デザインツール**: Square Line Studio（tab5_arduino_basic用）
+
+### 主な機能
+- **タッチパネル対応**: マルチタッチ、ジェスチャー認識
+- **高速描画**: DMA転送、SPIRAM使用
+- **RTC連携**: 正確な時刻表示（tab5_flip_clock）
+- **画像表示**: PNG/JPEG対応、スムーズスケーリング
+- **アニメーション**: フリップ効果、点滅表示
+
+### 🎓 教育価値
+
+このプロジェクトは、M5Stack Tab5でのLVGL GUI開発の実践的なリファレンスとして、以下の用途で活用できます：
+
+1. **教育・学習用途**
+   - LVGL GUI開発の基礎学習
+   - Square Line Studioの実践的な使用例
+   - タッチパネルUI開発の実装パターン
+   - RTC連携アプリケーションの実装方法
+
+2. **研究・開発用途**
+   - GUI アプリケーション開発の基盤
+   - 時計・カレンダーアプリの参考実装
+   - LVGL 8.3とM5Unifiedの統合パターン
+
+3. **商用用途**
+   - 製品UI開発の参考実装
+   - カスタマイズ可能なGUIテンプレート
+   - Square Line Studioワークフローの確立
+
+---
+
+## 🔧 トラブルシューティング
+
+### よくある問題と解決策
+
+#### 1. **画面が真っ暗**
+**原因**: PSRAM設定またはパーティション設定が不適切  
+**解決策**:
+- ボード設定で`PSRAM: Enabled`を確認
+- `PartitionScheme: Custom`を選択
+- 各プロジェクトの`partitions.csv`を使用
+
+#### 2. **LVGLコンパイルエラー**
+**原因**: LVGLバージョンの不一致  
+**解決策**:
+```bash
+# LVGL 9.xをアンインストール
+arduino-cli lib uninstall lvgl
+
+# LVGL 8.3.11をインストール
+arduino-cli lib install "lvgl@8.3.11"
+```
+
+#### 3. **タッチが反応しない**
+**原因**: タッチドライバの初期化失敗  
+**解決策**:
+- `lv_conf.h`のタッチ設定を確認
+- `M5.Touch.isEnabled()`でタッチ検出を確認
+- プログラムを再起動
+
+#### 4. **色がおかしい**
+**原因**: 色深度設定の不一致  
+**解決策**:
+- `lv_conf.h`で`LV_COLOR_DEPTH 16`を確認
+- `LV_COLOR_16_SWAP 1`を設定
+- M5GFXの`setSwapBytes(true)`を確認
+
+#### 5. **画像が表示されない（tab5_flip_clock）**
+**原因**: 画像データのサイズが大きすぎる  
+**解決策**:
+- PSRAM設定を確認
+- 画像データが正しくインクルードされているか確認
+
+#### 6. **RTC時刻がずれる（tab5_flip_clock）**
+**原因**: RTCの初期化失敗またはバッテリー切れ  
+**解決策**:
+- RTC（RX8130CE）のI2C接続を確認
+- RTCバッテリーを確認
+- プログラムで時刻を再設定
+
+### デバッグ方法
+```bash
+# シリアルモニターでデバッグ情報を確認
+arduino-cli monitor -p /dev/cu.usbmodem21201
+```
 
 ---
 
@@ -173,4 +309,11 @@ arduino-cli lib install "ArtronShop_RX8130CE"
 
 LVGLとM5Unifiedを使用したベーシックなGUIアプリケーションは、上記のリポジトリと公式ドキュメントを参考に実装されています。
 
+---
+
+**作成日**: 2025年12月6日  
+**最終更新**: 2025年12月21日（プロジェクト一覧表を追加、プロジェクト統計を追加）  
+**対象デバイス**: M5Stack Tab5 (ESP32-P4)  
+**開発環境**: Arduino IDE 2.x / Arduino CLI  
+**動作確認**: ✅ 全2プロジェクト正常動作確認済み
 
