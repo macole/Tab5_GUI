@@ -1,0 +1,18 @@
+- TFT_eSPI by Bodmer (V2.5.43)                      : Install via "Manage Libraries" or "Library Manager" in the Arduino IDE with the search keyword "TFT_eSPI".
+- XPT2046_Touchscreen by Paul Stoffregen (V1.4)     : Install via "Manage Libraries" or "Library Manager" in the Arduino IDE with the search keyword "XPT2046_Touchscreen".
+- lvgl by kisvegabor, embeddedt, pete-pjb (V9.2.0)  : Install via "Manage Libraries" or "Library Manager" in the Arduino IDE with the search keyword "lvgl".
+
+IMPORTANT :                                                                                   
+- For the TFT_eSPI library :                                                                  
+  > Open the "TFT_eSPI" library folder in your Arduino IDE libraries folder.                  
+    If you are a window user, usually the location of the Arduino IDE libraries folder is in  
+    "Documents -> Arduino -> libraries".                                                      
+  > Replace the "User_Setup.h" file in the "TFT_eSPI" library folder with                     
+    the "User_Setup.h" file that I have shared in the program code file                       
+    (Delete the "User_Setup.h" file in the "TFT_eSPI" library folder,                         
+    then copy the "User_Setup.h" file that I have shared in                                   
+    the program code file to the "TFT_eSPI" library folder.)                                  
+                                                                                              
+- For the LVGL library :                                                                      
+  Copy the "lv_conf.h" file to your Arduino IDE libraries folder                              
+  (COPY THE "lv_conf.h" FILE TO THE ARDUINO IDE LIBRARIES FOLDER, NOT INTO THE "lvgl" FOLDER.)

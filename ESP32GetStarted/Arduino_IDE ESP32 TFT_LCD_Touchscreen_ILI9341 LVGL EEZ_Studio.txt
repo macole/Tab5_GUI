@@ -1,0 +1,847 @@
+// ##########################################################################################################
+// # I HOPE YOU WATCH THE VIDEO ABOUT THIS PROJECT UNTIL THE END,                                           #
+// # SO YOU KNOW HOW TO SET UP AND USE THIS PROGRAM CODE.                                                   #
+// ##########################################################################################################
+
+
+// ##########################################################################################################
+// # References :                                                                                           #
+// # - LVGL with ESP32 TFT LCD Touchscreen Display – 2.8 inch ILI9341 240×320 (Arduino IDE) :               #
+// #   https://randomnerdtutorials.com/lvgl-esp32-tft-touchscreen-display-ili9341-arduino/                  #
+// # - Export an EEZ Studio UI to Arduino : https://nerdhut.de/2024/08/08/export-eez-studio-ui-to-arduino/  #
+// # - LVGL ESP32 2432S028R CYD example with EEZ Studio : https://youtu.be/1fXV2woCHqA?si=enkX8N2_5U8ZV1w6  #
+// # - LVGL ESP32-2432S028R Use Image Buttons to create multiple image slideshow (Beginner) :               #
+// #   https://youtu.be/4E10pMgt330?si=cOhNMvYcqfISdK3K                                                     #
+// # - [LVGL] Show info message while image building failed for LVGL 9.x :                                  #
+// #   https://github.com/eez-open/studio/issues/581                                                        #
+// #                                                                                                        #
+// # Software used :                                                                                        #
+// # - Arduino IDE (V1.8.19).                                                                               #
+// # - EEZ Studio (V0.20.0).                                                                                #
+// # - Python (V3.10.2).                                                                                    #
+// #                                                                                                        #
+// # Python Packages/Modules :                                                                              #
+// # - pypng (V0.20220715.0).                                                                               #
+// # - lz4 (V4.3.3).                                                                                        #
+// #   To install Iz4 module you will also need Microsoft Visual C++ Build Tools.                           #
+// #   If Microsoft Visual C++ Build Tools is not installed on your computer,                               #
+// #   please visit this link to download the Microsoft Visual C++ Build Tools installation file :          #
+// #   https://visualstudio.microsoft.com/visual-cpp-build-tools/                                           #
+// #   If you are confused about installing Microsoft Visual C++ Build Tools,                               #
+// #   see this video for an installation guide : https://youtu.be/rcI1_e38BWs?si=rBqy9eZCIAFRwuSX&t=39     #
+// #   I am not affiliated with the owner of the video.                                                     #
+// #   I recommend that video because I think it is suitable for a guide to                                 #
+// #   installing Microsoft Visual C++ Build Tools / Microsoft C++ Build Tools.                             #
+// #                                                                                                        #
+// # Arduino core :                                                                                         #
+// # - Arduino core for the ESP32 (V2.0.16).                                                                #
+// #                                                                                                        #
+// # Arduino libraries used :                                                                               #
+// # - TFT_eSPI by Bodmer (V2.5.43).                                                                        #
+// # - XPT2046_Touchscreen by Paul Stoffregen (V1.4.0).                                                     #
+// # - lvgl by kisvegabor, embeddedt, pete-pjb (V9.2.0).                                                    #
+// #                                                                                                        #
+// # Hardware used :                                                                                        #
+// # - ESP32 DEVKIT V1.                                                                                     #
+// # - 3.2” TFT LCD Touchscreen ILI9341 240*320 Pixel.                                                      #
+// # - LED and 220 or 330 ohm Resistor.                                                                     #
+// # - And other equipment such as cables, power supplies and others.                                       #
+// #                                                                                                        #
+// # IMPORTANT :                                                                                            #
+// # - For the TFT_eSPI library :                                                                           #
+// #   > Open the "TFT_eSPI" library folder in your Arduino IDE libraries folder.                           #
+// #     If you are a window user, usually the location of the Arduino IDE libraries folder is in           #
+// #     "Documents -> Arduino -> libraries".                                                               #
+// #   > Replace the "User_Setup.h" file in the "TFT_eSPI" library folder with                              #
+// #     the "User_Setup.h" file that I have shared in the program code file                                #
+// #     (Delete the "User_Setup.h" file in the "TFT_eSPI" library folder,                                  #
+// #     then copy the "User_Setup.h" file that I have shared in                                            #
+// #     the program code file to the "TFT_eSPI" library folder.)                                           #
+// #                                                                                                        #
+// # - For the LVGL library :                                                                               #
+// #   Copy the "lv_conf.h" file to your Arduino IDE libraries folder                                       #
+// #   (COPY THE "lv_conf.h" FILE TO THE ARDUINO IDE LIBRARIES FOLDER, NOT INTO THE "lvgl" FOLDER.)         #
+// ##########################################################################################################
+
+
+
+
+
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 01_Screen_Display_Test_and_Touchscreen_Calibration
+//---------------------------------------- Including Libraries.
+#include <SPI.h>
+#include <TFT_eSPI.h>
+#include <XPT2046_Touchscreen.h>
+//---------------------------------------- 
+
+// Defines the T_CS Touchscreen PIN.
+#define T_CS_PIN    13 //--> T_CS
+
+// Defines the width and height of the screen, also the font size.
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 320
+#define FONT_SIZE 2
+
+int centerX, centerY;
+
+byte ts_Calibration_Sequence = 1;
+byte cnt = 0;
+
+uint16_t ts_Min_X, ts_Max_X, ts_Min_Y, ts_Max_Y;
+bool FT = true;
+
+// Declaring the "TFT_eSPI" object as "tft".
+TFT_eSPI tft = TFT_eSPI();
+
+// Declaring the "XPT2046_Touchscreen" object as "touchscreen" and its settings.
+XPT2046_Touchscreen touchscreen(T_CS_PIN);
+
+
+
+//________________________________________________________________________________ Screen_Display_Test()
+void Screen_Display_Test() {
+  Serial.println();
+  Serial.println("Screen Display Test");
+  
+  tft.fillScreen(TFT_WHITE);
+  tft.setTextColor(TFT_BLACK, TFT_LIGHTGREY);
+  tft.drawCentreString("Screen Display Test", centerX, centerY, FONT_SIZE);
+  delay(2000);
+  
+  for (byte i = 0; i < 4; i++) {
+    tft.setRotation(i);  //--> Range from 0 to 3.
+
+    // Clear the screen to defined colour.
+    // To see the list of colors, open the file "TFT_eSPI.h" (Arduino IDE library folder -> TFT_eSPI -> TFT_eSPI.h).
+    // Look at "Section 6" (on line 302).
+    tft.fillScreen(TFT_WHITE);
+  
+    tft.setCursor(10, 10);
+    tft.setTextColor(TFT_BROWN); tft.setTextSize(1);
+    tft.print("LCD TFT Touchscreen");
+    tft.setCursor(9, 25);
+    tft.print("ILI9341 240*320 Pixel");
+    tft.setTextColor(TFT_GREEN); tft.setTextSize(2);
+    tft.setCursor(10, 40);
+    tft.print("with ESP32");
+    tft.setCursor(10, 60);
+    tft.print("& TFT_eSPI Library");
+    tft.setTextColor(TFT_CYAN); tft.setTextSize(2);
+    tft.setCursor(10, 85);
+    tft.print("UTEH STR");
+  
+    // Draw a filled rectangle.
+    tft.fillRect(10, 110, 20, 20, TFT_PURPLE);  //--> fillRect(x, y, w, h, color);
+  
+    // Draw a filled circle.
+    tft.fillCircle(45, 120, 10, TFT_OLIVE);  //--> fillCircle(x, y, radius, color);
+  
+    // Draw a filled triangle.
+    tft.fillTriangle(70, 110, 60, 130, 80, 130, TFT_BLUE);  //--> fillTriangle(x0, y0, x1, y1, x2, y2, color);
+
+    delay(1000);
+  }
+
+  tft.setTextSize(1);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ get_Touchscreen_Min_X()
+void get_Touchscreen_Min_X() {
+  print_Title("touchscreen_Min_X");
+  
+  while(true) {
+    // Draws a filled circle to touch so that it gets the base value touchscreen_Min_X
+    tft.fillCircle(0, centerY, 5, TFT_RED);  //--> fillCircle(x, y, radius, color);
+
+    // Checks if Touchscreen was touched, and prints X, Y and Pressure (Z) info on the TFT display and Serial Monitor.
+    if (touchscreen.touched()) {
+      cnt++;
+      
+      // Get Touchscreen points
+      TS_Point p = touchscreen.getPoint();
+  
+      print_Val(p.x, p.y, p.z);
+
+      if(FT == true && cnt > 1) {
+        ts_Min_X = p.x;
+        FT = false;
+      }
+
+      if(p.x < ts_Min_X) ts_Min_X = p.x;
+
+      if(cnt > 30) {
+        cnt = 0;
+        FT = true;
+        ts_Calibration_Sequence++;
+        break;
+      }
+  
+      delay(50);
+    }
+  }
+
+  print_Rslt("touchscreen_Min_X", ts_Min_X);
+
+  delay(5000);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ get_Touchscreen_Max_X()
+void get_Touchscreen_Max_X() {
+  print_Title("touchscreen_Max_X");
+  
+  while(true) {
+    // Draws a filled circle to touch so that it gets the base value touchscreen_Max_X
+    tft.fillCircle(239, centerY, 5, TFT_RED);  //--> fillCircle(x, y, radius, color);    
+
+    // Checks if Touchscreen was touched, and prints X, Y and Pressure (Z) info on the TFT display and Serial Monitor.
+    if (touchscreen.touched()) {
+      cnt++;
+      
+      // Get Touchscreen points
+      TS_Point p = touchscreen.getPoint();
+  
+      print_Val(p.x, p.y, p.z);
+
+      if(FT == true && cnt > 3) {
+        ts_Max_X = p.x;
+        FT = false;
+      }
+
+      if(p.x > ts_Max_X) ts_Max_X = p.x;
+
+      if(cnt > 30) {
+        cnt = 0;
+        FT = true;
+        ts_Calibration_Sequence++;
+        break;
+      }
+  
+      delay(50);
+    }
+  }
+
+  print_Rslt("touchscreen_Max_X", ts_Max_X);
+
+  delay(5000);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ get_Touchscreen_Min_Y()
+void get_Touchscreen_Min_Y() {
+  print_Title("touchscreen_Min_Y");
+  
+  while(true) {
+    // Draws a filled circle to touch so that it gets the base value touchscreen_Min_Y
+    tft.fillCircle(centerX, 0, 5, TFT_RED);  //--> fillCircle(x, y, radius, color);
+
+    // Checks if Touchscreen was touched, and prints X, Y and Pressure (Z) info on the TFT display and Serial Monitor.
+    if (touchscreen.touched()) {
+      cnt++;
+      
+      // Get Touchscreen points
+      TS_Point p = touchscreen.getPoint();
+  
+      print_Val(p.x, p.y, p.z);
+
+      if(FT == true && cnt > 3) {
+        ts_Min_Y = p.y;
+        FT = false;
+      }
+
+      if(p.y < ts_Min_Y) ts_Min_Y = p.y;
+
+      if(cnt > 30) {
+        cnt = 0;
+        FT = true;
+        ts_Calibration_Sequence++;
+        break;
+      }
+  
+      delay(50);
+    }
+  }
+
+  print_Rslt("touchscreen_Min_Y", ts_Min_Y);
+
+  delay(5000);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ get_Touchscreen_Max_Y()
+void get_Touchscreen_Max_Y() {
+  print_Title("touchscreen_Max_Y");
+  
+  while(true) {
+    // Draws a filled circle to touch so that it gets the base value touchscreen_Max_Y
+    tft.fillCircle(centerX, 319, 5, TFT_RED);  //--> fillCircle(x, y, radius, color);
+
+    // Checks if Touchscreen was touched, and prints X, Y and Pressure (Z) info on the TFT display and Serial Monitor.
+    if (touchscreen.touched()) {
+      cnt++;
+      
+      // Get Touchscreen points
+      TS_Point p = touchscreen.getPoint();
+  
+      print_Val(p.x, p.y, p.z);
+
+      if(FT == true && cnt > 3) {
+        ts_Max_Y = p.y;
+        FT = false;
+      }
+
+      if(p.y > ts_Max_Y) ts_Max_Y = p.y;
+
+      if(cnt > 30) {
+        cnt = 0;
+        FT = true;
+        ts_Calibration_Sequence++;
+        break;
+      }
+  
+      delay(50);
+    }
+  }
+
+  print_Rslt("touchscreen_Max_Y", ts_Max_Y);
+
+  delay(5000);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ print_Title()
+void print_Title(String ttl) {
+  Serial.println();
+  Serial.print("-----------------Get ");
+  Serial.print(ttl);
+  Serial.println(" value");
+  Serial.println("Please touch inside the red area.");
+  Serial.println();
+  
+  tft.fillScreen(TFT_WHITE); 
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
+  tft.drawCentreString("Get " + ttl, centerX, 20, FONT_SIZE);
+  tft.drawCentreString("value", centerX, 40, FONT_SIZE);
+  tft.drawCentreString("Please touch inside", centerX, (centerY - 8) - 10, FONT_SIZE);
+  tft.drawCentreString("the red area.", centerX, (centerY - 8) + 10, FONT_SIZE);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ print_Val()
+void print_Val(uint16_t x, uint16_t y, uint16_t z) {
+  //---------------------------------------- Print Touchscreen info about X, Y and Pressure (Z) on the Serial Monitor.
+  Serial.print("p.x = ");
+  Serial.print(x);
+  Serial.print(" | p.y = ");
+  Serial.print(y);
+  Serial.print(" | Pressure = ");
+  Serial.println(z);
+  //----------------------------------------
+  
+  //---------------------------------------- Print Touchscreen info about X, Y and Pressure (Z) on the TFT Display.
+  // Clear TFT screen
+  tft.fillScreen(TFT_WHITE);
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
+
+  int textY = 80;
+ 
+  String rslt_Text = "p.x = " + String(x);
+  tft.drawCentreString(rslt_Text, centerX, textY, FONT_SIZE);
+
+  textY += 20;
+  rslt_Text = "p.y = " + String(y);
+  tft.drawCentreString(rslt_Text, centerX, textY, FONT_SIZE);
+
+  textY += 20;
+  rslt_Text = "Pressure = " + String(z);
+  tft.drawCentreString(rslt_Text, centerX, textY, FONT_SIZE);
+  //----------------------------------------
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ print_Rslt()
+void print_Rslt(String ttl, uint16_t ts_min_rslt) {
+  Serial.println();
+  Serial.print("Getting ");
+  Serial.print(ttl);
+  Serial.print(" value is complete.");
+  Serial.println("Please release your touch from the screen.");
+
+  Serial.println();
+  Serial.print(ttl);
+  Serial.print(" = ");
+  Serial.println(ts_min_rslt);
+
+  Serial.println();
+  Serial.println("Please wait for the next process...");
+  Serial.println("-----------------");
+
+  String rslt_Text = ttl + " = " + String(ts_min_rslt);
+  tft.setTextColor(TFT_BLUE, TFT_WHITE);
+  tft.drawCentreString(rslt_Text, centerX, 160, FONT_SIZE);
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
+  tft.drawCentreString("Please release your touch", centerX, 200, FONT_SIZE);
+  tft.drawCentreString("from the screen.", centerX, 220, FONT_SIZE);
+  tft.drawCentreString("Please wait for", centerX, 260, FONT_SIZE);
+  tft.drawCentreString("the next process...", centerX, 280, FONT_SIZE);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ VOID SETUP()
+void setup() {
+  // put your setup code here, to run once:
+
+  Serial.begin(115200);
+  Serial.println();
+  delay(3000);
+
+  // Set X and Y coordinates for center of display.
+  centerX = SCREEN_WIDTH / 2;
+  centerY = SCREEN_HEIGHT / 2;
+
+  // Start the SPI for the touchscreen and init the touchscreen.
+  touchscreen.begin();
+
+  // Set the Touchscreen rotation in landscape mode.
+  // Note: in some displays, the touchscreen might be upside down, so you might need to set the rotation to 0. "touchscreen.setRotation(0);"
+  touchscreen.setRotation(2);
+
+  tft.init();
+  tft.setRotation(0);
+
+  // Clear the screen before writing to it.
+  tft.fillScreen(TFT_WHITE);
+
+  Screen_Display_Test();
+
+  tft.setRotation(0);
+
+  Serial.println();
+  Serial.println("Touchscreen Calibration");
+  
+  tft.fillScreen(TFT_WHITE);
+  tft.setTextColor(TFT_BLACK, TFT_LIGHTGREY);
+  tft.drawCentreString("Touchscreen Calibration", centerX, centerY, FONT_SIZE);
+  delay(2000);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ VOID LOOP()
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  if (ts_Calibration_Sequence == 1) {
+    get_Touchscreen_Min_X();
+  } else if (ts_Calibration_Sequence == 2) {
+    get_Touchscreen_Max_X();
+  } else if (ts_Calibration_Sequence == 3) {
+    get_Touchscreen_Min_Y();
+  } else if (ts_Calibration_Sequence == 4) {
+    get_Touchscreen_Max_Y();
+  } else if (ts_Calibration_Sequence == 5) {
+    Serial.println();
+    Serial.println("-----------------Calibration results");
+    Serial.println("Copy and save the calibration results below.");
+    Serial.println();
+    Serial.print("#define touchscreen_Min_X ");
+    Serial.println(ts_Min_X);
+    Serial.print("#define touchscreen_Max_X ");
+    Serial.println(ts_Max_X);
+    Serial.print("#define touchscreen_Min_Y ");
+    Serial.println(ts_Min_Y);
+    Serial.print("#define touchscreen_Max_Y ");
+    Serial.println(ts_Max_Y);
+    Serial.println("-----------------");
+
+    tft.fillScreen(TFT_WHITE);
+    tft.setTextColor(TFT_BLACK, TFT_WHITE);
+    tft.drawCentreString("Calibration process complete.", centerX, 10, FONT_SIZE);
+    tft.drawCentreString("See the results on", centerX, 30, FONT_SIZE);
+    tft.drawCentreString("the serial monitor.", centerX, 50, FONT_SIZE);
+    while(true) {
+      delay(1000);
+    }
+  } 
+
+  delay(50);
+}
+//________________________________________________________________________________ 
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+
+
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 02_ESP32_TFT_LCD_TS_ILI9341_LVGL_EEZ_STUDIO
+//---------------------------------------- Including Libraries.
+#include <lvgl.h>
+#include <TFT_eSPI.h>
+#include <XPT2046_Touchscreen.h>
+#include "ui.h"
+//---------------------------------------- 
+
+// Defines the T_CS Touchscreen PIN.
+#define T_CS_PIN  13 //--> T_CS
+
+// Defines the screen resolution.
+#define SCREEN_WIDTH  320
+#define SCREEN_HEIGHT 240
+
+//---------------------------------------- Defines the Touchscreen calibration result value.
+// Replace with the calibration results on your TFT LCD Touchscreen.
+#define touchscreen_Min_X 0
+#define touchscreen_Max_X 0
+#define touchscreen_Min_Y 0
+#define touchscreen_Max_Y 0
+//---------------------------------------- 
+
+#define LED_PIN 27
+
+// LVGL draw into this buffer, 1/10 screen size usually works well. The size is in bytes.
+#define DRAW_BUF_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT / 10 * (LV_COLOR_DEPTH / 8))
+uint8_t *draw_buf;
+
+// Variables for x, y and z values ​​on the touchscreen.
+uint16_t x, y, z;
+
+// Used to track the tick timer.
+uint32_t lastTick = 0;
+
+int Count_Val = 0;
+
+// Declaring the "XPT2046_Touchscreen" object as "touchscreen" and its settings.
+XPT2046_Touchscreen touchscreen(T_CS_PIN);
+
+
+
+//________________________________________________________________________________ log_print()
+// If logging is enabled, it will inform the user about what is happening in the library.
+void log_print(lv_log_level_t level, const char * buf) {
+  LV_UNUSED(level);
+  Serial.println(buf);
+  Serial.flush();
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ touchscreen_read()
+// Get the Touchscreen data.
+void touchscreen_read(lv_indev_t * indev, lv_indev_data_t * data) {
+  // Checks if Touchscreen was touched, and prints X, Y and Pressure (Z)
+  if (touchscreen.touched()) {
+    // Get Touchscreen points
+    TS_Point p = touchscreen.getPoint();
+    
+    //---------------------------------------- 
+    // Calibrate Touchscreen points with map function to the correct width and height.
+    x = map(p.x, touchscreen_Max_X, touchscreen_Min_X, 1, SCREEN_HEIGHT);
+    y = map(p.y, touchscreen_Max_Y, touchscreen_Min_Y, 1, SCREEN_WIDTH);
+    
+    // If the touchscreen on the TFT LCD is upside down, try the code line below.
+    // If there is an error on the touchscreen, edit and try other settings in the code section below.
+    // Because my TFT LCD Touchscreen device may have different settings from your TFT LCD device.
+    //x = map(p.x, touchscreen_Min_X, touchscreen_Max_X, 1, SCREEN_HEIGHT);
+    //y = map(p.y, touchscreen_Min_Y, touchscreen_Max_Y, 1, SCREEN_WIDTH);
+    //---------------------------------------- 
+    
+    z = p.z;
+
+    // Set the coordinates.
+    data->point.x = x;
+    data->point.y = y;
+
+    data->state = LV_INDEV_STATE_PRESSED;
+
+    // Print Touchscreen info about X, Y and Pressure (Z) on the Serial Monitor.
+    /*Serial.print("X = ");
+    Serial.print(x);
+    Serial.print(" | Y = ");
+    Serial.print(y);
+    Serial.print(" | Pressure = ");
+    Serial.print(z);
+    Serial.println();*/
+  }
+  else {
+    data->state = LV_INDEV_STATE_RELEASED;
+  }
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ my_button_test_bar_event_handler()
+// Callback that is triggered when "my_button_test_bar" is clicked.
+static void my_button_test_bar_event_handler(lv_event_t * e) {
+  lv_event_code_t code = lv_event_get_code(e);  //--> Get the event code.
+  
+  if (code == LV_EVENT_CLICKED) {
+    int RandVal = random(0, 100);
+
+    char buf[4];
+    lv_snprintf(buf, sizeof(buf), "%d", RandVal);
+
+    lv_bar_set_value(objects.my_vertical_bar, RandVal, LV_ANIM_ON);
+    lv_label_set_text(objects.my_label_vertical_bar, buf);
+    
+    lv_bar_set_value(objects.my_horizontal_bar, RandVal, LV_ANIM_ON);
+    lv_label_set_text(objects.my_label_horizontal_bar, buf);
+    
+    lv_arc_set_value(objects.my_arc_bar, RandVal);
+    lv_label_set_text(objects.my_label_arc_bar, buf);
+  }
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ my_button_toggle_event_handler()
+// Callback that is triggered when "my_button_toggle" is clicked.
+static void my_button_toggle_event_handler(lv_event_t * e) {
+  lv_event_code_t code = lv_event_get_code(e);                      //--> Get the event code.
+  lv_obj_t * my_button_toggle = (lv_obj_t*) lv_event_get_target(e); //--> Button that generated the event.
+  
+  if (code == LV_EVENT_VALUE_CHANGED) {
+    LV_UNUSED(my_button_toggle);
+
+    bool checked = lv_obj_has_state(my_button_toggle, LV_STATE_CHECKED);
+
+    // Conditions for changing the button color (my_button_toggle).
+    // 0xff + color code in hex.
+    // Example :
+    // 0xff + ff0000 (red in hex).
+    // So for red: 0xffff0000.
+    if (checked == true) {
+      lv_obj_set_style_bg_color(objects.my_button_toggle, lv_color_hex(0xff2196f3), LV_PART_MAIN | LV_STATE_CHECKED);
+      digitalWrite(LED_PIN, HIGH);
+    } else {
+      lv_obj_set_style_bg_color(objects.my_button_toggle, lv_color_hex(0xffff7f50), LV_PART_MAIN | LV_STATE_DEFAULT);
+      digitalWrite(LED_PIN, LOW);
+    }
+  }
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ my_switch_event_handler()
+// Callback that is triggered when "my_switch" is clicked/toggled.
+static void my_switch_event_handler(lv_event_t * e) {
+  lv_event_code_t code = lv_event_get_code(e);                          //--> Get the event code.
+  lv_obj_t * my_switch = (lv_obj_t*) lv_event_get_target(e);            //--> Switch that generated the event.
+  lv_obj_t * my_label_switch = (lv_obj_t *)lv_event_get_user_data(e);   //--> Label or other UI elements we want to update (Optional).
+  
+  if (code == LV_EVENT_VALUE_CHANGED) {
+    LV_UNUSED(my_switch);
+
+    bool checked = lv_obj_has_state(my_switch, LV_STATE_CHECKED);
+
+    if (checked == true) {
+      lv_label_set_text(my_label_switch, "ON");
+      lv_obj_set_style_text_color(my_label_switch, lv_color_hex(0xffff7f50), LV_PART_MAIN | LV_STATE_DEFAULT);
+      digitalWrite(LED_PIN, HIGH);
+    } else {
+      lv_label_set_text(my_label_switch, "OFF");
+      lv_obj_set_style_text_color(my_label_switch, lv_color_hex(0xffb6b6b6), LV_PART_MAIN | LV_STATE_DEFAULT);
+      digitalWrite(LED_PIN, LOW);
+    }
+  }
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ my_horizontal_slider_value_changed_event_cb()
+// Callback to print Slider value (my_horizontal_slider) to Label (my_label_horizontal_slider)
+// to be displayed on TFT LCD and change Canvas color.
+// This callback is triggered when Slider value changes.
+static void my_horizontal_slider_value_changed_event_cb(lv_event_t * e) {
+  lv_obj_t * my_horizontal_slider = (lv_obj_t *)lv_event_get_target(e);            //--> Slider that generated the event.
+  lv_obj_t * my_label_horizontal_slider = (lv_obj_t *)lv_event_get_user_data(e);   //--> Label or other UI elements we want to update (Optional).
+  
+  char buf[8];
+  lv_snprintf(buf, sizeof(buf), "%d", (int)lv_slider_get_value(my_horizontal_slider));
+  lv_label_set_text(my_label_horizontal_slider, buf);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ my_vertical_slider_value_changed_event_cb()
+// Callback to print Slider value (my_vertical_slider) to Label (my_label_vertical_slider)
+// to be displayed on TFT LCD and change Canvas color.
+// This callback is triggered when Slider value changes.
+static void my_vertical_slider_value_changed_event_cb(lv_event_t * e) {
+  lv_obj_t * my_vertical_slider       = (lv_obj_t *)lv_event_get_target(e);     //--> Slider that generated the event.
+  lv_obj_t * my_label_vertical_slider = (lv_obj_t *)lv_event_get_user_data(e);  //--> Label or other UI elements we want to update (Optional).
+
+  char buf[8];
+  lv_snprintf(buf, sizeof(buf), "%d", (int)lv_slider_get_value(my_vertical_slider));
+  lv_label_set_text(my_label_vertical_slider, buf);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ my_image_esp32_event_handler()
+// Callback that is triggered when "my_image_esp32" is clicked.
+static void my_image_esp32_event_handler(lv_event_t * e) {
+  lv_event_code_t code = lv_event_get_code(e);  //--> Get the event code.
+  
+  if (code == LV_EVENT_CLICKED) {
+    lv_label_set_text(objects.my_label_img_sta, "ESP32 image is\nTouched.");
+  }
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ my_image_lvgl_event_handler()
+// Callback that is triggered when "my_image_lvgl" is clicked.
+static void my_image_lvgl_event_handler(lv_event_t * e) {
+  lv_event_code_t code = lv_event_get_code(e);  //--> Get the event code.
+  
+  if (code == LV_EVENT_CLICKED) {
+    lv_label_set_text(objects.my_label_img_sta, "LVGL image is\nTouched.");
+  }
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ my_image_eez_event_handler()
+// Callback that is triggered when "my_image_eez" is clicked.
+static void my_image_eez_event_handler(lv_event_t * e) {
+  lv_event_code_t code = lv_event_get_code(e);  //--> Get the event code.
+  
+  if (code == LV_EVENT_CLICKED) {
+    lv_label_set_text(objects.my_label_img_sta, "EEZ image is\nTouched.");
+  }
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ 
+void setup() {
+  // put your setup code here, to run once:
+
+  Serial.begin(115200);
+  Serial.println();
+  delay(3000);
+
+  Serial.println("ESP32 + TFT LCD Touchscreen ILI9341 + LVGL + EEZ Studio");
+  Serial.println();
+  delay(500);
+
+  String LVGL_Arduino = String("LVGL Library Version: ") + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
+  Serial.println(LVGL_Arduino);
+  delay(500);
+  
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+
+  //---------------------------------------- LVGL setup.
+  Serial.println();
+  Serial.println("Start LVGL Setup.");
+  delay(500);
+  
+
+  // Start the SPI for the touchscreen and init the touchscreen.
+  touchscreen.begin();
+
+  // Set the Touchscreen rotation in landscape mode.
+  // Note: in some displays, the touchscreen might be upside down, so you might need to set the rotation to 0. "touchscreen.setRotation(0);"
+  touchscreen.setRotation(2);
+
+  // Start LVGL.
+  lv_init();
+  
+  // Register print function for debugging.
+  lv_log_register_print_cb(log_print);
+
+  // Create a display object.
+  lv_display_t * disp;
+  
+  // Initialize the TFT display using the TFT_eSPI library.
+  draw_buf = new uint8_t[DRAW_BUF_SIZE];
+  disp = lv_tft_espi_create(SCREEN_HEIGHT, SCREEN_WIDTH, draw_buf, DRAW_BUF_SIZE);
+  // If the display on the TFT LCD has problems, try the line of code below:
+  //disp = lv_tft_espi_create(SCREEN_WIDTH, SCREEN_HEIGHT, draw_buf, DRAW_BUF_SIZE);
+  lv_display_set_rotation(disp, LV_DISPLAY_ROTATION_90);
+    
+  // Initialize an LVGL input device object (Touchscreen).
+  lv_indev_t * indev = lv_indev_create();
+  lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+  
+  // Set the callback function to read Touchscreen input.
+  lv_indev_set_read_cb(indev, touchscreen_read);
+
+  Serial.println();
+  Serial.println("LVGL Setup Completed.");
+  delay(500);
+  //---------------------------------------- 
+
+  // Integrate EEZ Studio GUI.
+  ui_init();
+
+  // Register "my_button_test_bar" event handler.
+  lv_obj_add_event_cb(objects.my_button_test_bar, my_button_test_bar_event_handler, LV_EVENT_ALL, NULL);
+
+  // Register "my_button_toggle" event handler.
+  lv_obj_add_event_cb(objects.my_button_toggle, my_button_toggle_event_handler, LV_EVENT_ALL, NULL);
+
+   // Register "my_switch" event handler.
+  lv_obj_add_event_cb(objects.my_switch, my_switch_event_handler, LV_EVENT_VALUE_CHANGED, objects.my_label_switch);
+
+  // Register "my_horizontal_slider" event handler.
+  lv_obj_add_event_cb(objects.my_horizontal_slider, my_horizontal_slider_value_changed_event_cb, LV_EVENT_VALUE_CHANGED, objects.my_label_horizontal_slider);
+
+  // Register "my_vertical_slider" event handler.
+  lv_obj_add_event_cb(objects.my_vertical_slider, my_vertical_slider_value_changed_event_cb, LV_EVENT_VALUE_CHANGED, objects.my_label_vertical_slider);
+
+  // Register "my_image_esp32" event handler.
+  lv_obj_add_event_cb(objects.my_image_esp32, my_image_esp32_event_handler, LV_EVENT_ALL, NULL);
+
+  // Register "my_image_lvgl" event handler.
+  lv_obj_add_event_cb(objects.my_image_lvgl, my_image_lvgl_event_handler, LV_EVENT_ALL, NULL);
+
+  // Register "my_image_eez" event handler.
+  lv_obj_add_event_cb(objects.my_image_eez, my_image_eez_event_handler, LV_EVENT_ALL, NULL);
+}
+//________________________________________________________________________________ 
+
+
+
+//________________________________________________________________________________ 
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  lv_tick_inc(millis() - lastTick); //--> Update the tick timer. Tick is new for LVGL 9.
+  lastTick = millis();
+  lv_timer_handler(); //--> Update the UI.
+  delay(5);
+}
+//________________________________________________________________________________ 
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
