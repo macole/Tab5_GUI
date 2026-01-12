@@ -9,8 +9,8 @@ Arduino スケッチ単体のサンプルは `Tab5_Arduino`、ネットワーク
 
 - **プロジェクト名**: M5Stack Tab5 GUI / LVGL サンプル集  
 - **対象デバイス**: M5Stack Tab5 (ESP32-P4)  
-- **主な技術**: LVGL, M5Unified / M5GFX, Arduino IDE  
-- **総プロジェクト数**: 2個
+- **主な技術**: LVGL, M5Unified / M5GFX, EEZ Studio, Arduino IDE  
+- **総プロジェクト数**: 3個
 
 GUI を用いた以下のようなアプリケーションを提供しています。
 
@@ -49,6 +49,22 @@ Tab5_GUI/
 │   ├── img_flip.h               # パタパタ時計用画像データ
 │   ├── img_nixie_tube.h         # ニキシー管時計用画像データ
 │   └── Readme.md                # 詳細なドキュメント
+│
+├── EEZ_withFlow03_YahooNews/    # Yahoo News Viewer（EEZ Studio Flow）
+│   ├── EEZ_withFlow03_YahooNews.ino  # メインプログラム
+│   ├── LV8wF_Yahoo.eez-project  # EEZ Studio プロジェクト
+│   ├── ui.c, ui.h               # EEZ Studio 生成 UI コード
+│   ├── screens.c, screens.h     # スクリーン定義
+│   ├── vars.h                   # Flow 変数定義
+│   ├── eez-flow.cpp, eez-flow.h # Flow エンジン
+│   ├── ui_font_ipa_go.c         # 日本語フォント
+│   ├── lv_conf.h                # LVGL 設定ファイル
+│   ├── secrets.h.example        # WiFi 設定テンプレート
+│   ├── Docs/                    # ドキュメントフォルダ
+│   │   ├── README.md            # 基本ガイド
+│   │   ├── TECHNICAL_GUIDE.md   # 技術仕様
+│   │   └── CUSTOMIZATION_GUIDE.md  # カスタマイズガイド
+│   └── README.md                # プロジェクト概要
 │
 ├── LICENSE
 └── Readme.md                    # このファイル
@@ -109,13 +125,14 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 
 ---
 
-## 📊 プロジェクト一覧（全2個）
+## 📊 プロジェクト一覧（全3個）
 
-### LVGL GUIアプリケーション（2個）
+### LVGL GUIアプリケーション（3個）
 | No. | プログラム名 | 状態 | 主要機能 |
 |-----|-------------|------|----------|
 | 1 | tab5_arduino_basic | ✅ 完了 | LVGL基本GUI（ボタン、スライダー、アーク） |
 | 2 | tab5_flip_clock | ✅ 完了 | パタパタ時計/ニキシー管時計（RTC連携） |
+| 3 | EEZ_withFlow03_YahooNews | ✅ 完了 | Yahoo Newsビューアー（WiFi、RSS、EEZ Flow） |
 
 ---
 
@@ -161,12 +178,46 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 
 詳細は [`tab5_flip_clock/Readme.md`](tab5_flip_clock/Readme.md) を参照してください。
 
+### EEZ_withFlow03_YahooNews
+
+**Yahoo News Viewer アプリケーション（EEZ Studio Flow連携）**
+
+- EEZ Studio で設計した GUI と Flow 機能を使用
+- WiFi 接続してYahoo News RSSを取得
+- 最大10件のニュース表示（スクロール可能）
+- シリアル出力をリアルタイムで画面表示
+- 手動更新ボタンで最新ニュース取得
+- WiFi 状態の自動監視と再接続
+
+**主な機能**:
+- WiFi 接続と状態表示（切断/接続中/接続済）
+- HTTPS 通信による Yahoo News RSS 取得
+- XML パース処理（ニュースタイトル抽出）
+- EEZ Studio Flow 変数連携
+- ログ出力機能（cmdData を活用）
+- 日本語フォント対応（IPA ゴシック）
+- テンプレートとして他のWebサービス連携に応用可能
+
+**技術スタック**:
+- LVGL 8.3.11 + EEZ Studio
+- M5Unified 0.2.10
+- HTTPClient（HTTPS通信）
+- WiFi（ESP32標準）
+- ArduinoJson（将来的な拡張用）
+
+**ドキュメント**:
+- 基本ガイド: [`EEZ_withFlow03_YahooNews/Docs/README.md`](EEZ_withFlow03_YahooNews/Docs/README.md)
+- 技術仕様: [`EEZ_withFlow03_YahooNews/Docs/TECHNICAL_GUIDE.md`](EEZ_withFlow03_YahooNews/Docs/TECHNICAL_GUIDE.md)
+- カスタマイズ: [`EEZ_withFlow03_YahooNews/Docs/CUSTOMIZATION_GUIDE.md`](EEZ_withFlow03_YahooNews/Docs/CUSTOMIZATION_GUIDE.md)
+
+詳細は [`EEZ_withFlow03_YahooNews/README.md`](EEZ_withFlow03_YahooNews/README.md) を参照してください。
+
 ---
 
 ## 📊 プロジェクト統計
 
-- **総プログラム数**: 2個
-- **ドキュメント数**: 4個（README.md + 各プロジェクトReadme.md + 参考元リポジトリ情報）
+- **総プログラム数**: 3個
+- **ドキュメント数**: 8個（README.md + 各プロジェクトドキュメント）
 - **動作確認率**: 100%
 - **カテゴリ数**: 1カテゴリ（LVGL GUIアプリケーション）
 
@@ -174,14 +225,17 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 - **GUI フレームワーク**: LVGL 8.3.11
 - **ハードウェアライブラリ**: M5Unified 0.2.10
 - **開発環境**: Arduino IDE 2.x / Arduino CLI
-- **デザインツール**: Square Line Studio（tab5_arduino_basic用）
+- **デザインツール**: Square Line Studio（tab5_arduino_basic用）、EEZ Studio（EEZ_withFlow03用）
 
 ### 主な機能
 - **タッチパネル対応**: マルチタッチ、ジェスチャー認識
 - **高速描画**: DMA転送、SPIRAM使用
 - **RTC連携**: 正確な時刻表示（tab5_flip_clock）
+- **WiFi通信**: HTTPS通信、RSS取得（EEZ_withFlow03）
+- **Flow連携**: EEZ Studio Flow エンジン、変数連携
 - **画像表示**: PNG/JPEG対応、スムーズスケーリング
 - **アニメーション**: フリップ効果、点滅表示
+- **ログ表示**: リアルタイムログ出力
 
 ### 🎓 教育価値
 
@@ -189,19 +243,24 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 
 1. **教育・学習用途**
    - LVGL GUI開発の基礎学習
-   - Square Line Studioの実践的な使用例
+   - Square Line Studio / EEZ Studioの実践的な使用例
    - タッチパネルUI開発の実装パターン
    - RTC連携アプリケーションの実装方法
+   - WiFi通信とWebサービス連携の基礎
+   - EEZ Studio Flow プログラミングの学習
 
 2. **研究・開発用途**
    - GUI アプリケーション開発の基盤
    - 時計・カレンダーアプリの参考実装
+   - Webサービス連携アプリの参考実装
    - LVGL 8.3とM5Unifiedの統合パターン
+   - EEZ Studio Flowの実装パターン
 
 3. **商用用途**
    - 製品UI開発の参考実装
    - カスタマイズ可能なGUIテンプレート
-   - Square Line Studioワークフローの確立
+   - Square Line Studio / EEZ Studioワークフローの確立
+   - IoTダッシュボード開発のベース
 
 ---
 
@@ -254,6 +313,21 @@ arduino-cli lib install "lvgl@8.3.11"
 - RTCバッテリーを確認
 - プログラムで時刻を再設定
 
+#### 7. **WiFiに接続できない（EEZ_withFlow03）**
+**原因**: WiFi設定の不備またはルーター設定  
+**解決策**:
+- `secrets.h` のSSIDとパスワードを確認
+- WiFiルーターが2.4GHz帯で動作しているか確認（5GHzは非対応）
+- シリアルモニターでエラーメッセージを確認
+
+#### 8. **ニュースが表示されない（EEZ_withFlow03）**
+**原因**: RSS取得失敗またはXML解析エラー  
+**解決策**:
+- WiFi接続を確認
+- シリアルモニターでHTTPレスポンスコードを確認
+- Yahoo News RSSのURLが変更されていないか確認
+- テキストエリアの最大長（8192文字）を確認
+
 ### デバッグ方法
 ```bash
 # シリアルモニターでデバッグ情報を確認
@@ -288,6 +362,8 @@ arduino-cli monitor -p /dev/cu.usbmodem21201
 - [M5Unified GitHub](https://github.com/m5stack/M5Unified)
 - [M5GFX GitHub](https://github.com/m5stack/M5GFX)
 - [Square Line Studio](https://squareline.io/)
+- [EEZ Studio 公式サイト](https://www.envox.eu/eez-studio/)
+- [EEZ Studio GitHub](https://github.com/eez-open/studio)
 - [M5Stack Tab5 公式ドキュメント](https://docs.m5stack.com/)
 
 ### サンプル別参考リンク
@@ -318,13 +394,21 @@ LVGLとM5Unifiedを使用したベーシックなGUIアプリケーションは�
 
 上記の「参考リンク集」を参照してください。
 
-LVGLとM5Unifiedを使用したベーシックなGUIアプリケーションは、上記のリポジトリと公式ドキュメントを参考に実装されています。
+#### EEZ_withFlow03_YahooNews
+
+- **開発**: オリジナル実装（2026年1月12日）
+- **EEZ Studio 公式サイト**: [EEZ Studio](https://www.envox.eu/eez-studio/)
+- **EEZ Studio ドキュメント**: [EEZ Studio Wiki](https://github.com/eez-open/studio/wiki)
+- **LVGL公式ドキュメント**: [LVGL Documentation](https://docs.lvgl.io/)
+- **Yahoo! ニュース RSS**: [Yahoo! ニュース](https://news.yahoo.co.jp/)
+
+EEZ Studio と Flow 機能を使用した Yahoo News ビューアーアプリケーションです。WiFi 通信、RSS 取得、Flow 変数連携など、実用的なWebサービス連携の実装例を提供しています。
 
 ---
 
 **作成日**: 2025年12月6日  
-**最終更新**: 2025年12月21日（プロジェクト一覧表を追加、プロジェクト統計を追加）  
+**最終更新**: 2026年1月12日（EEZ_withFlow03_YahooNews プロジェクトを追加）  
 **対象デバイス**: M5Stack Tab5 (ESP32-P4)  
 **開発環境**: Arduino IDE 2.x / Arduino CLI  
-**動作確認**: ✅ 全2プロジェクト正常動作確認済み
+**動作確認**: ✅ 全3プロジェクト正常動作確認済み
 
