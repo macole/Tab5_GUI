@@ -1,11 +1,6 @@
 // M5Stack Tab5 EEZ-Studio Yahoo News Viewer
 // 依存関係: ESP-Arduino >= V3.2, M5Unified >= 0.2.10, LVGL = V8.3.11
 // lv_conf.h設定: LV_COLOR_DEPTH 16, LV_COLOR_16_SWAP 1, LV_MEM_CUSTOM 1, LV_TICK_CUSTOM 1
-//
-// 機能:
-// - WiFi接続と状態表示
-// - Yahoo News RSS取得（HTTPS）
-// - EEZ Studio Flow連携
 
 #include <M5Unified.h>
 #include <lvgl.h>
@@ -23,16 +18,12 @@ using namespace eez;
 using namespace eez::flow;
 
 // ==================== 定数定義 ====================
-// シリアル通信
-#define SERIAL_BAUD_RATE 115200
 
-// ディスプレイ設定
+#define SERIAL_BAUD_RATE 115200// シリアル通信
 #define SCREEN_WIDTH 720     // Tab5物理解像度（縦向き）
 #define SCREEN_HEIGHT 1280   // Tab5物理解像度（縦向き）
-
 #define SCREEN_BUFFER_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
 #define DEFAULT_BRIGHTNESS 255
-
 
 #define LVGL_TIMER_DELAY_MS 1          // タイマー設定
 #define WIFI_CONNECT_TIMEOUT_MS 15000  // WiFi接続タイムアウト（15秒）
@@ -44,7 +35,6 @@ using namespace eez::flow;
 #define MAX_NEWS_ITEMS 10              // 最大ニュース取得数
 
 // ==================== グローバル変数 ====================
-// LVGL描画バッファ
 static lv_disp_draw_buf_t g_draw_buf;
 static lv_color_t *g_color_buf = nullptr;
 
@@ -53,19 +43,19 @@ static int g_wifiStatus = 0;                // WiFi接続状態（0:切断, 1:�
 static String g_newsData = "";              // 取得したニュースデータ
 static String g_updateStatus = "待機中";    // 更新状態メッセージ
 static String g_cmdData = "";               // コマンド/ログデータ（シリアル出力と同じ内容）
+static int32_t g_light = 255;               // 画面の明るさ（0-255）
+static int32_t g_lastLight = 255;           // 前回の明るさ（変化検出用）
 
 // ログ管理設定
 #define MAX_LOG_LINES 30                  // 最大保持行数
 #define MAX_LOG_LENGTH 4096               // 最大文字数
 
 // ==================== LVGLコールバック関数 ====================
-// ディスプレイフラッシュコールバック
-// LVGL描画データをM5Displayに転送
+// LVGL描画データをM5Displayに転送　ディスプレイフラッシュコールバック
 void lv_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     const uint32_t width = area->x2 - area->x1 + 1;
-    const uint32_t height = area->y2 - area->y1 + 1;
-    
+    const uint32_t height = area->y2 - area->y1 + 1;    
     M5.Display.pushImageDMA(area->x1, area->y1, width, height, (uint16_t *)&color_p->full);
     lv_disp_flush_ready(disp);
 }
@@ -74,8 +64,6 @@ void lv_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
 static void lv_indev_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
 {
     auto touch_detail = M5.Touch.getDetail();
-    
-    // タッチ状態の判定（isPressed: タッチされている間ずっとtrue）
     if (touch_detail.isPressed() || touch_detail.wasPressed()) {
         data->state = LV_INDEV_STATE_PR;  // プレス状態
         data->point.x = touch_detail.x;
@@ -130,16 +118,10 @@ void addLogf(const char* format, ...)
     addLog(buffer);
 }
 
-// ログをクリア
-void clearLog()
-{
-    g_cmdData = "";
-}
-
-// ログをtextareaに表示
+// ログをtextarea_cmdに表示
 void updateLogDisplay()
 {
-    if (objects.textarea_news) {
+    if (objects.textarea_cmd) {
         lv_textarea_set_text(objects.textarea_cmd, g_cmdData.c_str());
         // 最下部にスクロール
         lv_obj_scroll_to_y(objects.textarea_cmd, LV_COORD_MAX, LV_ANIM_OFF);
@@ -187,8 +169,7 @@ void configureDisplayDriver(lv_disp_drv_t &disp_drv)
 // LVGLディスプレイ初期化
 bool initLvglDisplay()
 {
-    addLog("Initializing LVGL display...");
-    
+    addLog("Initializing LVGL display...");    
     lv_init();
     
     if (!allocateDisplayBuffer()) {
@@ -234,7 +215,10 @@ bool connectWiFi()
     addLogf("  SSID: %s", ssid);
     
     g_wifiStatus = 1;  // 接続中
-    updateFlowVariable("wifiStatus", g_wifiStatus);
+    setGlobalVariable(FLOW_GLOBAL_VARIABLE_WIFI_STATUS, Value(g_wifiStatus));
+    if (objects.label_wifi_status) {
+        lv_label_set_text(objects.label_wifi_status, "WiFi: 接続中...");
+    }
     updateLogDisplay();
     
     WiFi.mode(WIFI_STA);
@@ -246,7 +230,10 @@ bool connectWiFi()
         if (::millis() - startTime > WIFI_CONNECT_TIMEOUT_MS) {
             addLog("  Status: Connection timeout");
             g_wifiStatus = 0;  // 切断
-            updateFlowVariable("wifiStatus", g_wifiStatus);
+            setGlobalVariable(FLOW_GLOBAL_VARIABLE_WIFI_STATUS, Value(g_wifiStatus));
+            if (objects.label_wifi_status) {
+                lv_label_set_text(objects.label_wifi_status, "WiFi: 切断");
+            }
             updateLogDisplay();
             return false;
         }
@@ -264,7 +251,10 @@ bool connectWiFi()
     addLogf("  IP: %s", WiFi.localIP().toString().c_str());
     
     g_wifiStatus = 2;  // 接続完了
-    updateFlowVariable("wifiStatus", g_wifiStatus);
+    setGlobalVariable(FLOW_GLOBAL_VARIABLE_WIFI_STATUS, Value(g_wifiStatus));
+    if (objects.label_wifi_status) {
+        lv_label_set_text(objects.label_wifi_status, "WiFi: 接続済");
+    }
     updateLogDisplay();
     return true;
 }
@@ -347,13 +337,13 @@ String fetchYahooNews()
     updateLogDisplay();
     
     g_updateStatus = "取得中...";
-    updateFlowVariable("updateStatus", g_updateStatus);
+    setGlobalVariable(FLOW_GLOBAL_VARIABLE_UPDATE_STATUS, Value(g_updateStatus.c_str()));
     
     // WiFi接続確認
     if (WiFi.status() != WL_CONNECTED) {
         addLog("Error: WiFi not connected");
         g_updateStatus = "エラー: WiFi未接続";
-        updateFlowVariable("updateStatus", g_updateStatus);
+        setGlobalVariable(FLOW_GLOBAL_VARIABLE_UPDATE_STATUS, Value(g_updateStatus.c_str()));
         updateLogDisplay();
         return "エラー: WiFiに接続されていません。";
     }
@@ -401,7 +391,7 @@ String fetchYahooNews()
         addLog("HTTP begin failed");
     }
     
-    updateFlowVariable("updateStatus", g_updateStatus);
+    setGlobalVariable(FLOW_GLOBAL_VARIABLE_UPDATE_STATUS, Value(g_updateStatus.c_str()));
     addLogf("Free Heap: %d bytes", ESP.getFreeHeap());
     addLog("==============================");
     updateLogDisplay();
@@ -409,40 +399,21 @@ String fetchYahooNews()
     return result;
 }
 
-// ==================== Flow変数更新関数 ====================
+// ==================== Native変数のgetter/setter ====================
 
-// Flow変数を更新（String）
-// EEZ Flow変数にString値を設定
-void updateFlowVariable(const char* varName, String value)
+// 画面の明るさを取得
+extern "C" int32_t get_var_light()
 {
-    if (strcmp(varName, "newsData") == 0) {
-        setGlobalVariable(FLOW_GLOBAL_VARIABLE_NEWS_DATA, Value(value.c_str()));
-        addLogf("Flow variable updated: newsData (length=%d)", value.length());
-    } else if (strcmp(varName, "updateStatus") == 0) {
-        setGlobalVariable(FLOW_GLOBAL_VARIABLE_UPDATE_STATUS, Value(value.c_str()));
-        addLogf("Flow variable updated: updateStatus = %s", value.c_str());
-    }
+    return g_light;
 }
 
-// Flow変数を更新（int）
-// EEZ Flow変数にint値を設定し、WiFi状態ラベルも更新
-void updateFlowVariable(const char* varName, int value)
+// 画面の明るさを設定
+extern "C" void set_var_light(int32_t value)
 {
-    if (strcmp(varName, "wifiStatus") == 0) {
-        setGlobalVariable(FLOW_GLOBAL_VARIABLE_WIFI_STATUS, Value(value));
-        addLogf("Flow variable updated: wifiStatus = %d", value);
-        
-        // WiFi状態をラベルに直接反映
-        const char* statusText = "";
-        switch(value) {
-            case 0: statusText = "WiFi: 切断"; break;
-            case 1: statusText = "WiFi: 接続中..."; break;
-            case 2: statusText = "WiFi: 接続済"; break;
-        }
-        if (objects.label_wifi_status) {
-            lv_label_set_text(objects.label_wifi_status, statusText);
-        }
-    }
+    // 明るさを0-255に制限
+    if (value < 0) value = 0;
+    if (value > 255) value = 255;
+    g_light = value;
 }
 
 // ==================== Flowアクション関数 ====================
@@ -458,26 +429,34 @@ extern "C" void action_action_fetch_news()
     g_newsData = fetchYahooNews();
     
     // Flow変数を更新
-    updateFlowVariable("newsData", g_newsData);
+    setGlobalVariable(FLOW_GLOBAL_VARIABLE_NEWS_DATA, Value(g_newsData.c_str()));
     
     // 表示を更新
     action_action_refresh_display();
 }
 
 // 表示更新アクション
-// ログデータをテキストエリアに表示
+// ニュースデータとログデータをそれぞれのテキストエリアに表示
 extern "C" void action_action_refresh_display()
 {
     addLog("Action: action_refresh_display");
     
-    // テキストエリアにログデータを反映（cmdDataを表示）
+    // textarea_newsにニュースデータを表示
     if (objects.textarea_news) {
-        lv_textarea_set_text(objects.textarea_news, g_cmdData.c_str());
-        // 最下部にスクロール
-        lv_obj_scroll_to_y(objects.textarea_news, LV_COORD_MAX, LV_ANIM_OFF);
-        addLogf("Display updated: %d bytes written to textarea", g_cmdData.length());
+        lv_textarea_set_text(objects.textarea_news, g_newsData.c_str());
+        addLogf("News data updated: %d bytes written to textarea_news", g_newsData.length());
     } else {
         addLog("Warning: textarea_news object is NULL!");
+    }
+    
+    // textarea_cmdにログデータを表示
+    if (objects.textarea_cmd) {
+        lv_textarea_set_text(objects.textarea_cmd, g_cmdData.c_str());
+        // 最下部にスクロール
+        lv_obj_scroll_to_y(objects.textarea_cmd, LV_COORD_MAX, LV_ANIM_OFF);
+        addLogf("Log data updated: %d bytes written to textarea_cmd", g_cmdData.length());
+    } else {
+        addLog("Warning: textarea_cmd object is NULL!");
     }
     
     // 更新状態ラベルを反映
@@ -528,8 +507,10 @@ void setup()
     updateLogDisplay();
     
     // 画面の明るさ設定
-    M5.Display.setBrightness(DEFAULT_BRIGHTNESS);
-    addLog("Initial brightness set to maximum");
+    g_light = DEFAULT_BRIGHTNESS;
+    g_lastLight = g_light;
+    M5.Display.setBrightness(g_light);
+    addLogf("Initial brightness set to: %d", g_light);
     
     // WiFi接続
     if (connectWiFi()) {
@@ -549,14 +530,9 @@ void setup()
 
 void loop()
 {
-    // M5Unified更新（ボタン、タッチ、IMUなど）
-    M5.update();
-    
-    // LVGL更新（画面描画処理）
-    lv_timer_handler();
-    
-    // EEZ-Studio UI更新（Flow処理）
-    ui_tick();
+    M5.update();    // M5Unified更新（ボタン、タッチ、IMUなど）
+    lv_timer_handler();    // LVGL更新（画面描画処理）
+    ui_tick();    // EEZ-Studio UI更新（Flow処理）
     
     // WiFi状態を定期的にチェック（WIFI_CHECK_INTERVAL_MS間隔）
     static unsigned long lastWiFiCheck = 0;
@@ -564,14 +540,32 @@ void loop()
         int currentStatus = getWiFiStatus();
         if (currentStatus != g_wifiStatus) {
             g_wifiStatus = currentStatus;
-            updateFlowVariable("wifiStatus", g_wifiStatus);
+            setGlobalVariable(FLOW_GLOBAL_VARIABLE_WIFI_STATUS, Value(g_wifiStatus));
             
-            // WiFi切断時は再接続を試みる
+            // WiFi状態をラベルに直接反映
+            const char* statusText = "";
+            switch(g_wifiStatus) {
+                case 0: statusText = "WiFi: 切断"; break;
+                case 1: statusText = "WiFi: 接続中..."; break;
+                case 2: statusText = "WiFi: 接続済"; break;
+            }
+            if (objects.label_wifi_status) {
+                lv_label_set_text(objects.label_wifi_status, statusText);
+            }
+            
             if (g_wifiStatus == 0) {
                 reconnectWiFi();
             }
         }
         lastWiFiCheck = ::millis();
+    }
+    
+    // 画面の明るさを監視（light変数の変化を検出）
+    if (g_light != g_lastLight) {
+        M5.Display.setBrightness(g_light);
+        addLogf("Brightness changed: %d -> %d", g_lastLight, g_light);
+        updateLogDisplay();
+        g_lastLight = g_light;
     }
     
     delay(LVGL_TIMER_DELAY_MS);
