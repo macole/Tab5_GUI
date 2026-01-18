@@ -10,7 +10,7 @@ Arduino スケッチ単体のサンプルは `Tab5_Arduino`、ネットワーク
 - **プロジェクト名**: M5Stack Tab5 GUI / LVGL サンプル集  
 - **対象デバイス**: M5Stack Tab5 (ESP32-P4)  
 - **主な技術**: LVGL, M5Unified / M5GFX, EEZ Studio, Arduino IDE  
-- **総プロジェクト数**: 3個
+- **総プロジェクト数**: 4個（3個のアプリ + 1個のテンプレート）
 
 GUI を用いた以下のようなアプリケーションを提供しています。
 
@@ -65,6 +65,26 @@ Tab5_GUI/
 │   │   ├── TECHNICAL_GUIDE.md   # 技術仕様
 │   │   └── CUSTOMIZATION_GUIDE.md  # カスタマイズガイド
 │   └── README.md                # プロジェクト概要
+│
+├── EEZ_Template/                # EEZ Studio開発用テンプレート
+│   ├── EEZ_Template.ino         # メインプログラム
+│   ├── LVGLv8withFlow.eez-project  # EEZ Studio プロジェクト
+│   ├── ui.c, ui.h               # EEZ Studio 生成 UI コード
+│   ├── screens.c, screens.h     # スクリーン定義
+│   ├── vars.h                   # Flow 変数定義
+│   ├── eez-flow.cpp, eez-flow.h # Flow エンジン
+│   ├── lv_conf.h                # LVGL 設定ファイル
+│   ├── images.c, images.h       # 画像データ
+│   ├── styles.c, styles.h       # スタイル定義
+│   ├── fonts.h, actions.h, structs.h  # その他の定義ファイル
+│   ├── Docs/                    # ドキュメントフォルダ
+│   │   ├── PROJECT_OVERVIEW.md  # プロジェクト全体の詳細説明
+│   │   ├── QUICK_START.md       # クイックスタートガイド
+│   │   ├── CUSTOMIZATION_GUIDE.md  # カスタマイズガイド
+│   │   └── TECHNICAL_GUIDE.md   # 技術詳細
+│   ├── README.md                # プロジェクト概要
+│   ├── LICENSE                  # ライセンスファイル
+│   └── .gitignore               # Git除外設定
 │
 ├── LICENSE
 └── Readme.md                    # このファイル
@@ -125,7 +145,7 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 
 ---
 
-## 📊 プロジェクト一覧（全3個）
+## 📊 プロジェクト一覧（全4個）
 
 ### LVGL GUIアプリケーション（3個）
 | No. | プログラム名 | 状態 | 主要機能 |
@@ -133,6 +153,11 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 | 1 | tab5_arduino_basic | ✅ 完了 | LVGL基本GUI（ボタン、スライダー、アーク） |
 | 2 | tab5_flip_clock | ✅ 完了 | パタパタ時計/ニキシー管時計（RTC連携） |
 | 3 | EEZ_withFlow03_YahooNews | ✅ 完了 | Yahoo Newsビューアー（WiFi、RSS、EEZ Flow） |
+
+### 開発テンプレート（1個）
+| No. | プログラム名 | 状態 | 主要機能 |
+|-----|-------------|------|----------|
+| 4 | EEZ_Template | ✅ 完了 | EEZ Studio開発用テンプレート（WiFi対応、詳細ドキュメント付き） |
 
 ---
 
@@ -212,14 +237,49 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 
 詳細は [`EEZ_withFlow03_YahooNews/README.md`](EEZ_withFlow03_YahooNews/README.md) を参照してください。
 
+### EEZ_Template
+
+**EEZ Studio開発用テンプレート**
+
+- LVGL + EEZ Studio Flowの統合テンプレート
+- シンプルで拡張しやすい最小限の実装
+- 詳細なコメントとドキュメント
+- カスタマイズしやすい構造
+- 機能追加のための実装ガイド付き
+- クイックスタートガイド付き
+
+**主な特徴**:
+- 完全ドキュメント化（4つの詳細ガイド付き）
+- M5Unified統合とSPIRAM最適化
+- DMA転送による高速描画
+- Flow言語の基本実装
+- シンプルで理解しやすいコード構造
+- WiFi、センサー、通信機能の追加ガイド完備
+- MIT ライセンス
+
+**ドキュメント**:
+- プロジェクト概要: [`EEZ_Template/Docs/PROJECT_OVERVIEW.md`](EEZ_Template/Docs/PROJECT_OVERVIEW.md)
+- クイックスタートガイド: [`EEZ_Template/Docs/QUICK_START.md`](EEZ_Template/Docs/QUICK_START.md)
+- カスタマイズガイド: [`EEZ_Template/Docs/CUSTOMIZATION_GUIDE.md`](EEZ_Template/Docs/CUSTOMIZATION_GUIDE.md)
+- 技術詳細: [`EEZ_Template/Docs/TECHNICAL_GUIDE.md`](EEZ_Template/Docs/TECHNICAL_GUIDE.md)
+
+**用途**:
+- 新規アプリケーション開発の出発点
+- EEZ Studioの学習
+- LVGL + M5Unifiedの統合パターン
+- IoTダッシュボードのベース
+- Webサービス連携アプリのテンプレート
+
+詳細は [`EEZ_Template/README.md`](EEZ_Template/README.md) を参照してください。
+
 ---
 
 ## 📊 プロジェクト統計
 
-- **総プログラム数**: 3個
-- **ドキュメント数**: 8個（README.md + 各プロジェクトドキュメント）
+- **総プログラム数**: 4個（3個のアプリ + 1個のテンプレート）
+- **ドキュメント数**: 12個（README.md + 各プロジェクトドキュメント）
 - **動作確認率**: 100%
-- **カテゴリ数**: 1カテゴリ（LVGL GUIアプリケーション）
+- **カテゴリ数**: 2カテゴリ（アプリケーション、テンプレート）
 
 ### 技術スタック
 - **GUI フレームワーク**: LVGL 8.3.11
