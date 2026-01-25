@@ -9,15 +9,15 @@ Arduino スケッチ単体のサンプルは `Tab5_Arduino`、ネットワーク
 
 - **プロジェクト名**: M5Stack Tab5 GUI / LVGL サンプル集  
 - **対象デバイス**: M5Stack Tab5 (ESP32-P4)  
-- **主な技術**: LVGL, M5Unified / M5GFX, EEZ Studio, Arduino IDE  
+- **主な技術**: LVGL, M5Unified / M5GFX, EEZ Studio, Square Line Studio, Arduino IDE  
 - **総プロジェクト数**: 4個（3個のアプリ + 1個のテンプレート）
 
 GUI を用いた以下のようなアプリケーションを提供しています。
 
 - LVGL を使用したタッチ対応の高機能 GUI（ボタン・スライダー・リストなど）
-- Square Line Studio でデザインした UI の実装例
+- Square Line Studio / EEZ Studio でデザインした UI の実装例
 - 画像・フォントを多用したフロントエンド UI
-- RTC 連携による時計アプリケーション
+- WiFi連携によるWebサービス表示アプリケーション
 
 ---
 
@@ -27,31 +27,43 @@ GUI を用いた以下のようなアプリケーションを提供していま�
 
 ```
 Tab5_GUI/
-├── tab5_arduino_basic/          # LVGL ベーシックアプリケーション
-│   ├── tab5_arduino_basic.ino   # メインプログラム
+├── EEZ_withFlow01_Clock/        # Square Line Studio時計アプリ
+│   ├──  EEZ_withFlow01_Clock.ino # メインプログラム
 │   ├── ui.c, ui.h               # Square Line Studio 生成 UI コード
 │   ├── ui_Screen1.c             # 画面1の実装
 │   ├── ui_helpers.c/h           # UI ヘルパー関数
-│   ├── ui_events.h               # イベント定義
+│   ├── ui_events.h              # イベント定義
 │   ├── ui_comp_hook.c           # コンポーネントフック
-│   ├── ui_font_*.c              # フォントデータ
+│   ├── ui_font_*.c              # フォントデータ（デジタル時計用）
 │   ├── lv_conf.h                # LVGL 設定ファイル
+│   ├── pins_config.h            # ディスプレイ設定
+│   ├── config.h                 # アプリケーション設定
 │   ├── CMakeLists.txt           # CMake 設定
 │   ├── partitions.csv           # パーティション設定
-│   ├── SLS_Project/             # Square Line Studio プロジェクト
-│   │   ├── Tab5_Basic.spj
-│   │   ├── Tab5_Basic.sll
-│   │   └── Themes.slt
 │   └── README.md                # 詳細なドキュメント
 │
-├── tab5_flip_clock/             # パタパタ時計 / ニキシー管時計アプリ
-│   ├── tab5_flip_clock.ino      # メインプログラム
-│   ├── img_flip.h               # パタパタ時計用画像データ
-│   ├── img_nixie_tube.h         # ニキシー管時計用画像データ
-│   └── Readme.md                # 詳細なドキュメント
+├── EEZ_withFlow02_Native/       # EEZ Studio Native実装
+│   ├── EEZ_withFlow02_Native.ino # メインプログラム
+│   ├── LVGLv8withFlow.eez-project # EEZ Studio プロジェクト
+│   ├── ui.c, ui.h               # EEZ Studio 生成 UI コード
+│   ├── screens.c, screens.h     # スクリーン定義
+│   ├── vars.h                   # Flow 変数定義
+│   ├── eez-flow.cpp, eez-flow.h # Flow エンジン
+│   ├── actions.cpp, actions.h   # アクション定義
+│   ├── lv_conf.h                # LVGL 設定ファイル
+│   ├── images.c, images.h       # 画像データ
+│   ├── styles.c, styles.h       # スタイル定義
+│   ├── fonts.h, structs.h       # その他の定義ファイル
+│   ├── Docs/                    # ドキュメントフォルダ
+│   │   ├── PROJECT_OVERVIEW.md  # プロジェクト全体の詳細説明
+│   │   ├── QUICK_START.md       # クイックスタートガイド
+│   │   ├── CUSTOMIZATION_GUIDE.md # カスタマイズガイド
+│   │   └── TECHNICAL_GUIDE.md   # 技術詳細
+│   ├── README.md                # プロジェクト概要
+│   └── LICENSE                  # ライセンスファイル
 │
 ├── EEZ_withFlow03_YahooNews/    # Yahoo News Viewer（EEZ Studio Flow）
-│   ├── EEZ_withFlow03_YahooNews.ino  # メインプログラム
+│   ├── EEZ_withFlow03_YahooNews.ino # メインプログラム
 │   ├── LV8wF_Yahoo.eez-project  # EEZ Studio プロジェクト
 │   ├── ui.c, ui.h               # EEZ Studio 生成 UI コード
 │   ├── screens.c, screens.h     # スクリーン定義
@@ -63,12 +75,12 @@ Tab5_GUI/
 │   ├── Docs/                    # ドキュメントフォルダ
 │   │   ├── README.md            # 基本ガイド
 │   │   ├── TECHNICAL_GUIDE.md   # 技術仕様
-│   │   └── CUSTOMIZATION_GUIDE.md  # カスタマイズガイド
+│   │   └── CUSTOMIZATION_GUIDE.md # カスタマイズガイド
 │   └── README.md                # プロジェクト概要
 │
 ├── EEZ_Template/                # EEZ Studio開発用テンプレート
 │   ├── EEZ_Template.ino         # メインプログラム
-│   ├── LVGLv8withFlow.eez-project  # EEZ Studio プロジェクト
+│   ├── LVGLv8withFlow.eez-project # EEZ Studio プロジェクト
 │   ├── ui.c, ui.h               # EEZ Studio 生成 UI コード
 │   ├── screens.c, screens.h     # スクリーン定義
 │   ├── vars.h                   # Flow 変数定義
@@ -76,15 +88,24 @@ Tab5_GUI/
 │   ├── lv_conf.h                # LVGL 設定ファイル
 │   ├── images.c, images.h       # 画像データ
 │   ├── styles.c, styles.h       # スタイル定義
-│   ├── fonts.h, actions.h, structs.h  # その他の定義ファイル
-│   ├── Docs/                    # ドキュメントフォルダ
-│   │   ├── PROJECT_OVERVIEW.md  # プロジェクト全体の詳細説明
-│   │   ├── QUICK_START.md       # クイックスタートガイド
-│   │   ├── CUSTOMIZATION_GUIDE.md  # カスタマイズガイド
-│   │   └── TECHNICAL_GUIDE.md   # 技術詳細
+│   ├── fonts.h, actions.h, structs.h # その他の定義ファイル
 │   ├── README.md                # プロジェクト概要
 │   ├── LICENSE                  # ライセンスファイル
 │   └── .gitignore               # Git除外設定
+│
+├── Docs/                        # EEZ_withFlow03_YahooNews関連ドキュメント
+│   ├── README.md                # Yahoo News Viewer 基本ガイド
+│   ├── TECHNICAL_GUIDE.md       # 技術仕様・プログラム構造
+│   ├── CUSTOMIZATION_GUIDE.md   # カスタマイズガイド
+│   └── EEZ_withFlow03_YahooNews.ino # サンプルコード
+│
+├── tmp/                         # 開発中・アーカイブプロジェクト
+│   ├── DrawingCameraApp/
+│   ├── DroomMachine/
+│   ├── EEZ_withFlow01/
+│   ├── EEZ_withFlow02_Flowデータ連携/
+│   ├── lvgl_basic/
+│   └── その他の実験的プロジェクト
 │
 ├── LICENSE
 └── Readme.md                    # このファイル
@@ -132,13 +153,14 @@ Arduino IDE または Arduino CLI で以下の設定を使用してください�
 Arduino CLI での設定例：
 
 ```bash
+# EEZ_withFlow01_Clock の例
 arduino-cli compile \
   --fqbn esp32:esp32:esp32p4:PSRAM=enabled,FlashSize=16M,PartitionScheme=custom,CDCOnBoot=cdc,USBMode=hwcdc,UploadSpeed=921600 \
-  tab5_arduino_basic/tab5_arduino_basic.ino
+  EEZ_withFlow01_Clock/EEZ_withFlow01_Clock.ino
 
 arduino-cli upload -p /dev/cu.usbmodem21201 \
   --fqbn esp32:esp32:esp32p4:PSRAM=enabled,FlashSize=16M,PartitionScheme=custom,CDCOnBoot=cdc,USBMode=hwcdc,UploadSpeed=921600 \
-  tab5_arduino_basic/tab5_arduino_basic.ino
+  EEZ_withFlow01_Clock/EEZ_withFlow01_Clock.ino
 ```
 
 **注意**: PSRAM=enabled と PartitionScheme=custom は必須です。これらの設定を省くと、バックライトやフレームバッファ初期化に失敗し、画面が真っ暗になる場合があります。
@@ -148,60 +170,65 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 ## 📊 プロジェクト一覧（全4個）
 
 ### LVGL GUIアプリケーション（3個）
-| No. | プログラム名 | 状態 | 主要機能 |
-|-----|-------------|------|----------|
-| 1 | tab5_arduino_basic | ✅ 完了 | LVGL基本GUI（ボタン、スライダー、アーク） |
-| 2 | tab5_flip_clock | ✅ 完了 | パタパタ時計/ニキシー管時計（RTC連携） |
-| 3 | EEZ_withFlow03_YahooNews | ✅ 完了 | Yahoo Newsビューアー（WiFi、RSS、EEZ Flow） |
+| No. | プログラム名 | 開発ツール | 主要機能 |
+|-----|-------------|-----------|----------|
+| 1 | EEZ_withFlow01_Clock | Square Line Studio | LVGL基本GUI（カウンター、スライダー、アーク、カスタムフォント） |
+| 2 | EEZ_withFlow02_Native | EEZ Studio | EEZ Studio Native実装（Flow連携、詳細ドキュメント付き） |
+| 3 | EEZ_withFlow03_YahooNews | EEZ Studio | Yahoo Newsビューアー（WiFi、HTTPS、RSS、日本語フォント） |
 
 ### 開発テンプレート（1個）
-| No. | プログラム名 | 状態 | 主要機能 |
-|-----|-------------|------|----------|
-| 4 | EEZ_Template | ✅ 完了 | EEZ Studio開発用テンプレート（WiFi対応、詳細ドキュメント付き） |
+| No. | プログラム名 | 開発ツール | 主要機能 |
+|-----|-------------|-----------|----------|
+| 4 | EEZ_Template | EEZ Studio | EEZ Studio開発用テンプレート（シンプル構造、カスタマイズ容易） |
 
 ---
 
 ## 🎨 サンプルアプリケーション
 
-### tab5_arduino_basic
+### EEZ_withFlow01_Clock
 
-**LVGL を使用したベーシックな GUI アプリケーション**
+**Square Line Studio を使用した時計 GUI アプリケーション**
 
 - Square Line Studio でデザインした UI の実装例
 - ボタンによる自動カウント機能の ON/OFF
 - アーク（円形プログレスバー）とラベルによるカウンター表示
 - スライダーによる画面の明るさ調整
+- カスタムフォント（セブンセグメント、Conthrax）
 - M5Unified を使用したシンプルな実装
 
 **主な機能**:
-- LVGL と M5Unified の統合
+- LVGL 8.3.11 と M5Unified の統合
 - タッチパネル入力のサポート
 - DMA 転送による高速描画
-- SPIRAM を使用した描画バッファの確保
-- 90度回転ディスプレイのサポート
+- SPIRAM を使用した描画バッファの確保（1.8MB）
+- 90度回転ディスプレイのサポート（横向き）
 
-詳細は [`tab5_arduino_basic/README.md`](tab5_arduino_basic/README.md) を参照してください。
+詳細は [`EEZ_withFlow01_Clock/README.md`](EEZ_withFlow01_Clock/README.md) を参照してください。
 
-### tab5_flip_clock
+### EEZ_withFlow02_Native
 
-**パタパタ時計 / ニキシー管時計アプリケーション**
+**EEZ Studio Native 実装アプリケーション**
 
-- RTC（RX8130CE）から正確な時刻を取得
-- 2つの表示モードを切り替え可能
-  - **パタパタ時計モード**: 数字がフリップするアニメーション効果付き
-  - **ニキシー管時計モード**: ニキシー管の温かみのあるオレンジ色の表示
-- 日付表示（年/月/日と曜日）
-- 時刻表示（時:分:秒）
-- 最適化された描画（変更があった数字のみ更新）
+- EEZ Studio と Flow 機能を使用した Native 実装
+- 自動カウント機能とリアルタイム表示
+- 画面の明るさ調整機能
+- Flow言語による動作制御
+- 詳細なドキュメント（4つの専門ガイド付き）
 
 **主な機能**:
-- RTC（RX8130CE）からの時刻取得
-- UTC から日本時間（JST）への自動変換
-- 画面サイズに基づく自動スケーリング
-- 滑らかな画像拡大（黒い筋なし）
-- コロンの点滅表示（1秒ごと）
+- EEZ Studio Flow 言語エンジン
+- M5Unified統合とSPIRAM最適化
+- DMA転送による高速描画
+- シンプルで理解しやすいコード構造
+- カスタマイズしやすい設計
 
-詳細は [`tab5_flip_clock/Readme.md`](tab5_flip_clock/Readme.md) を参照してください。
+**ドキュメント**:
+- プロジェクト概要: [`EEZ_withFlow02_Native/Docs/PROJECT_OVERVIEW.md`](EEZ_withFlow02_Native/Docs/PROJECT_OVERVIEW.md)
+- クイックスタート: [`EEZ_withFlow02_Native/Docs/QUICK_START.md`](EEZ_withFlow02_Native/Docs/QUICK_START.md)
+- カスタマイズ: [`EEZ_withFlow02_Native/Docs/CUSTOMIZATION_GUIDE.md`](EEZ_withFlow02_Native/Docs/CUSTOMIZATION_GUIDE.md)
+- 技術詳細: [`EEZ_withFlow02_Native/Docs/TECHNICAL_GUIDE.md`](EEZ_withFlow02_Native/Docs/TECHNICAL_GUIDE.md)
+
+詳細は [`EEZ_withFlow02_Native/README.md`](EEZ_withFlow02_Native/README.md) を参照してください。
 
 ### EEZ_withFlow03_YahooNews
 
@@ -246,10 +273,9 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 - 詳細なコメントとドキュメント
 - カスタマイズしやすい構造
 - 機能追加のための実装ガイド付き
-- クイックスタートガイド付き
 
 **主な特徴**:
-- 完全ドキュメント化（4つの詳細ガイド付き）
+- 完全ドキュメント化（詳細ガイド付き）
 - M5Unified統合とSPIRAM最適化
 - DMA転送による高速描画
 - Flow言語の基本実装
@@ -257,11 +283,10 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 - WiFi、センサー、通信機能の追加ガイド完備
 - MIT ライセンス
 
-**ドキュメント**:
-- プロジェクト概要: [`EEZ_Template/Docs/PROJECT_OVERVIEW.md`](EEZ_Template/Docs/PROJECT_OVERVIEW.md)
-- クイックスタートガイド: [`EEZ_Template/Docs/QUICK_START.md`](EEZ_Template/Docs/QUICK_START.md)
-- カスタマイズガイド: [`EEZ_Template/Docs/CUSTOMIZATION_GUIDE.md`](EEZ_Template/Docs/CUSTOMIZATION_GUIDE.md)
-- 技術詳細: [`EEZ_Template/Docs/TECHNICAL_GUIDE.md`](EEZ_Template/Docs/TECHNICAL_GUIDE.md)
+**デフォルト機能**:
+- 自動カウント機能（0〜255まで）
+- 画面の明るさ調整（スライダー）
+- リアルタイムUI更新
 
 **用途**:
 - 新規アプリケーション開発の出発点
@@ -276,26 +301,26 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
 
 ## 📊 プロジェクト統計
 
-- **総プログラム数**: 4個（3個のアプリ + 1個のテンプレート）
-- **ドキュメント数**: 12個（README.md + 各プロジェクトドキュメント）
+- **総プロジェクト数**: 4個（3個のアプリ + 1個のテンプレート）
+- **ドキュメント数**: 15個以上（README + 技術ガイド + カスタマイズガイド）
 - **動作確認率**: 100%
 - **カテゴリ数**: 2カテゴリ（アプリケーション、テンプレート）
 
 ### 技術スタック
 - **GUI フレームワーク**: LVGL 8.3.11
-- **ハードウェアライブラリ**: M5Unified 0.2.10
+- **ハードウェアライブラリ**: M5Unified 0.2.10以上
 - **開発環境**: Arduino IDE 2.x / Arduino CLI
-- **デザインツール**: Square Line Studio（tab5_arduino_basic用）、EEZ Studio（EEZ_withFlow03用）
+- **デザインツール**: Square Line Studio（EEZ_withFlow01用）、EEZ Studio（EEZ_withFlow02/03用）
 
 ### 主な機能
-- **タッチパネル対応**: マルチタッチ、ジェスチャー認識
-- **高速描画**: DMA転送、SPIRAM使用
-- **RTC連携**: 正確な時刻表示（tab5_flip_clock）
-- **WiFi通信**: HTTPS通信、RSS取得（EEZ_withFlow03）
+- **タッチパネル対応**: タッチ入力、ジェスチャー認識
+- **高速描画**: DMA転送、SPIRAM使用（1.8MB画面バッファ）
+- **WiFi通信**: HTTPS通信、RSS取得（EEZ_withFlow03_YahooNews）
 - **Flow連携**: EEZ Studio Flow エンジン、変数連携
-- **画像表示**: PNG/JPEG対応、スムーズスケーリング
-- **アニメーション**: フリップ効果、点滅表示
-- **ログ表示**: リアルタイムログ出力
+- **カスタムフォント**: セブンセグメント、日本語フォント対応
+- **画像表示**: C配列形式、最適化された画像データ
+- **リアルタイム更新**: 自動カウント、明るさ調整
+- **ログ表示**: シリアル出力、リアルタイムログ
 
 ### 🎓 教育価値
 
@@ -305,22 +330,23 @@ arduino-cli upload -p /dev/cu.usbmodem21201 \
    - LVGL GUI開発の基礎学習
    - Square Line Studio / EEZ Studioの実践的な使用例
    - タッチパネルUI開発の実装パターン
-   - RTC連携アプリケーションの実装方法
    - WiFi通信とWebサービス連携の基礎
    - EEZ Studio Flow プログラミングの学習
+   - HTTPS通信とRSS解析の実装方法
 
 2. **研究・開発用途**
    - GUI アプリケーション開発の基盤
-   - 時計・カレンダーアプリの参考実装
    - Webサービス連携アプリの参考実装
    - LVGL 8.3とM5Unifiedの統合パターン
    - EEZ Studio Flowの実装パターン
+   - カスタムフォントの統合方法
 
 3. **商用用途**
    - 製品UI開発の参考実装
    - カスタマイズ可能なGUIテンプレート
    - Square Line Studio / EEZ Studioワークフローの確立
    - IoTダッシュボード開発のベース
+   - ニュース表示・情報表示システムの基盤
 
 ---
 
@@ -360,33 +386,21 @@ arduino-cli lib install "lvgl@8.3.11"
 - `LV_COLOR_16_SWAP 1`を設定
 - M5GFXの`setSwapBytes(true)`を確認
 
-#### 5. **画像が表示されない（tab5_flip_clock）**
-**原因**: 画像データのサイズが大きすぎる  
-**解決策**:
-- PSRAM設定を確認
-- 画像データが正しくインクルードされているか確認
-
-#### 6. **RTC時刻がずれる（tab5_flip_clock）**
-**原因**: RTCの初期化失敗またはバッテリー切れ  
-**解決策**:
-- RTC（RX8130CE）のI2C接続を確認
-- RTCバッテリーを確認
-- プログラムで時刻を再設定
-
-#### 7. **WiFiに接続できない（EEZ_withFlow03）**
+#### 5. **WiFiに接続できない（EEZ_withFlow03_YahooNews）**
 **原因**: WiFi設定の不備またはルーター設定  
 **解決策**:
 - `secrets.h` のSSIDとパスワードを確認
 - WiFiルーターが2.4GHz帯で動作しているか確認（5GHzは非対応）
 - シリアルモニターでエラーメッセージを確認
 
-#### 8. **ニュースが表示されない（EEZ_withFlow03）**
+#### 6. **ニュースが表示されない（EEZ_withFlow03_YahooNews）**
 **原因**: RSS取得失敗またはXML解析エラー  
 **解決策**:
 - WiFi接続を確認
-- シリアルモニターでHTTPレスポンスコードを確認
+- シリアルモニターでHTTPレスポンスコードを確認（200が正常）
 - Yahoo News RSSのURLが変更されていないか確認
 - テキストエリアの最大長（8192文字）を確認
+- メモリ不足の場合はPSRAM設定を確認
 
 ### デバッグ方法
 ```bash
@@ -428,16 +442,7 @@ arduino-cli monitor -p /dev/cu.usbmodem21201
 
 ### サンプル別参考リンク
 
-#### tab5_flip_clock
-
-- **元リポジトリ**: [gijin77/M5Stack-Tab5-Nixie-Flip-Clock](https://github.com/gijin77/M5Stack-Tab5-Nixie-Flip-Clock)
-- **オリジナルコード**: 2025/05/23 By JK1VCK
-- **ブログ記事**: [gijin77のブログ - M5Stack Tab5でニキシー管時計](https://gijin77.blog.jp/archives/44667829.html)
-- **RTC ライブラリ**: [ArtronShop_RX8130CE GitHub](https://github.com/artronshop/ArtronShop_RX8130CE)
-
-パタパタ時計 / ニキシー管時計アプリケーションは、上記のリポジトリを参考に実装されています。
-
-#### tab5_arduino_basic
+#### EEZ_withFlow01_Clock
 
 - **元リポジトリ**: [nikthefix/M5Stack_Tab5_Arduino_Basic_LVGL_Demo](https://github.com/nikthefix/M5Stack_Tab5_Arduino_Basic_LVGL_Demo)
 - **LVGL公式ドキュメント**: [LVGL Documentation](https://docs.lvgl.io/)
@@ -446,13 +451,17 @@ arduino-cli monitor -p /dev/cu.usbmodem21201
 - **Square Line Studio**: [Square Line Studio](https://squareline.io/)
 - **Square Line Studio ドキュメント**: [SLS Documentation](https://docs.squareline.io/)
 
-LVGLとM5Unifiedを使用したベーシックなGUIアプリケーションは、上記のリポジトリと公式ドキュメントを参考に実装されています。
+Square Line StudioとLVGLを使用した時計GUIアプリケーションは、上記のリポジトリと公式ドキュメントを参考に実装されています。
 
----
+#### EEZ_withFlow02_Native & EEZ_Template
 
-## 📚 参考資料
+- **開発**: オリジナル実装（2026年1月）
+- **EEZ Studio 公式サイト**: [EEZ Studio](https://www.envox.eu/eez-studio/)
+- **EEZ Studio ドキュメント**: [EEZ Studio Wiki](https://github.com/eez-open/studio/wiki)
+- **EEZ Studio GitHub**: [EEZ Studio](https://github.com/eez-open/studio)
+- **LVGL公式ドキュメント**: [LVGL Documentation](https://docs.lvgl.io/)
 
-上記の「参考リンク集」を参照してください。
+EEZ Studio と Flow 機能を使用したアプリケーション開発のテンプレートとリファレンス実装です。
 
 #### EEZ_withFlow03_YahooNews
 
@@ -462,13 +471,19 @@ LVGLとM5Unifiedを使用したベーシックなGUIアプリケーションは�
 - **LVGL公式ドキュメント**: [LVGL Documentation](https://docs.lvgl.io/)
 - **Yahoo! ニュース RSS**: [Yahoo! ニュース](https://news.yahoo.co.jp/)
 
-EEZ Studio と Flow 機能を使用した Yahoo News ビューアーアプリケーションです。WiFi 通信、RSS 取得、Flow 変数連携など、実用的なWebサービス連携の実装例を提供しています。
+EEZ Studio と Flow 機能を使用した Yahoo News ビューアーアプリケーションです。WiFi 通信、HTTPS通信、RSS 取得、Flow 変数連携など、実用的なWebサービス連携の実装例を提供しています。
+
+---
+
+## 📚 参考資料
+
+上記の「参考リンク集」セクションを参照してください。各プロジェクトで使用している技術の公式ドキュメントやリファレンス実装へのリンクがまとめられています。
 
 ---
 
 **作成日**: 2025年12月6日  
-**最終更新**: 2026年1月12日（EEZ_withFlow03_YahooNews プロジェクトを追加）  
+**最終更新**: 2026年1月19日（プロジェクト構成を最新化）  
 **対象デバイス**: M5Stack Tab5 (ESP32-P4)  
 **開発環境**: Arduino IDE 2.x / Arduino CLI  
-**動作確認**: ✅ 全3プロジェクト正常動作確認済み
+**動作確認**: ✅ 全4プロジェクト正常動作確認済み
 
