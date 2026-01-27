@@ -1,50 +1,71 @@
 {
     "configurations": [
         {
-            "name": "Arduino",
+            "name": "Arduino ESP32-P4",
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-arm",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/LV8wF/src/**",
                 "${workspaceFolder}/../Tab5_Arduino/libraries/**",
                 "${workspaceFolder}/../Tab5_Arduino/libraries/M5Unified/src/**",
                 "${workspaceFolder}/../Tab5_Arduino/libraries/M5GFX/src/**",
                 "${workspaceFolder}/../Tab5_Arduino/libraries/LovyanGFX/src/**",
                 "${workspaceFolder}/../Tab5_Arduino/libraries/lvgl/src/**",
+                "${workspaceFolder}/../Tab5_Arduino/libraries/lvgl/src/lvgl/**",
                 "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/cores/esp32/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/cores/esp32/include/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/variants/esp32p4/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/tools/sdk/**",
                 "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/tools/sdk/include/**",
                 "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32/include/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32p4/include/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32p4/include/esp_heap/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32p4/include/freertos/**",
+                "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32p4/include/esp_common/**",
                 "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32/*/libraries/**",
                 "${env:HOME}/Library/Arduino15/libraries/**",
+                "${env:HOME}/Library/Arduino15/libraries/lvgl/src/**",
+                "${env:HOME}/Library/Arduino15/libraries/lvgl/src/lvgl/**",
                 "${env:HOME}/Documents/Arduino/libraries/**"
             ],
             "defines": [
                 "ARDUINO=10819",
-                "ARDUINO_ESP32_DEV",
-                "ARDUINO_ARCH_ESP32",
-                "ESP32",
-                "F_CPU=240000000L",
                 "ARDUINO_ESP32P4_DEV",
                 "ARDUINO_ARCH_ESP32P4",
+                "ARDUINO_ARCH_ESP32",
+                "ESP32",
                 "ESP32P4",
+                "F_CPU=240000000L",
+                "F_OSC=40000000L",
                 "__ets__",
+                "__XTENSA__",
                 "ICACHE_FLASH",
                 "LWIP_IPV4=1",
                 "LWIP_IPV6=0",
                 "ARDUINO_BOARD=\"ESP32P4 Dev Module\"",
                 "ARDUINO_VARIANT=\"esp32p4\"",
-                "ARDUINO_PARTITION=\"custom\""
+                "ARDUINO_PARTITION=\"custom\"",
+                "CORE_DEBUG_LEVEL=0",
+                "LV_CONF_INCLUDE_SIMPLE",
+                "LV_USE_LOG=0"
             ],
             "browse": {
                 "path": [
                     "${workspaceFolder}",
+                    "${workspaceFolder}/LV8wF",
                     "${workspaceFolder}/../Tab5_Arduino/libraries",
-                    "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32"
+                    "${env:HOME}/Library/Arduino15/packages/esp32/hardware/esp32",
+                    "${env:HOME}/Library/Arduino15/libraries"
                 ],
-                "limitSymbolsToIncludedHeaders": true
-            }
+                "limitSymbolsToIncludedHeaders": false
+            },
+            "compilerArgs": [
+                "-m32",
+                "-mlongcalls"
+            ]
         }
     ],
     "version": 4

@@ -84,7 +84,8 @@
 #define LV_DISP_DEF_REFR_PERIOD 30      /*[ms]*/
 
 /*Input device read period in milliseconds*/
-/* スライダーの連続操作を滑らかにするため、読み取り間隔を短く設定 */
+/* タッチ入力の応答性を向上させるには、この値を小さくしてください（例: 10ms）*/
+/* ボタンが反応しない場合は、この値を10msに設定してください */
 #define LV_INDEV_DEF_READ_PERIOD 10     /*[ms]*/
 
 /*Use a custom tick source that tells the elapsed time in milliseconds.
@@ -223,7 +224,8 @@
  *-----------*/
 
 /*Enable the log module*/
-#define LV_USE_LOG 0
+// デバッグを有効にするには、この値を 1 に変更してください
+#define LV_USE_LOG 1
 #if LV_USE_LOG
 
     /*How important log should be added:
@@ -368,13 +370,13 @@
 #define LV_FONT_MONTSERRAT_30 0
 #define LV_FONT_MONTSERRAT_32 0
 #define LV_FONT_MONTSERRAT_34 0
-#define LV_FONT_MONTSERRAT_36 0
+#define LV_FONT_MONTSERRAT_36 1
 #define LV_FONT_MONTSERRAT_38 0
 #define LV_FONT_MONTSERRAT_40 0
 #define LV_FONT_MONTSERRAT_42 0
 #define LV_FONT_MONTSERRAT_44 0
 #define LV_FONT_MONTSERRAT_46 0
-#define LV_FONT_MONTSERRAT_48 0
+#define LV_FONT_MONTSERRAT_48 1
 
 /*Demonstrate special features*/
 #define LV_FONT_MONTSERRAT_12_SUBPX      0

@@ -1,12 +1,25 @@
 {
     "files.associations": {
-        "*.ino": "cpp"
+        "*.ino": "cpp",
+        "lv_conf.h": "c",
+        "esp_heap_caps.h": "c"
     },
     "C_Cpp.intelliSenseEngine": "default",
     "C_Cpp.errorSquiggles": "enabled",
     "C_Cpp.default.compilerPath": "/usr/bin/clang",
     "C_Cpp.default.cStandard": "c11",
     "C_Cpp.default.cppStandard": "c++17",
-    "C_Cpp.default.intelliSenseMode": "gcc-arm"
+    "C_Cpp.default.intelliSenseMode": "gcc-arm",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/**"
+    ],
+    "C_Cpp.default.defines": [
+        "ARDUINO=10819",
+        "ARDUINO_ESP32P4_DEV",
+        "ESP32P4"
+    ],
+    "C_Cpp.autocomplete": "default",
+    "C_Cpp.suggestSnippets": true,
+    "C_Cpp.enhancedColorization": "enabled"
 }
 

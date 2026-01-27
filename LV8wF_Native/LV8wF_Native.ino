@@ -1,15 +1,5 @@
 /*******************************************************************************
  * M5Stack Tab5 - EEZ Studio テンプレートプロジェクト
- * 
- * このテンプレートは、EEZ StudioとLVGLを使用したM5Stack Tab5アプリケーション
- * の基礎となるプロジェクトです。カスタマイズして独自のアプリケーションを
- * 作成してください。
- * 
- * 機能:
- * - LVGL 8.3.11ベースのUI
- * - EEZ Studio Flow言語サポート
- * - M5Unified統合
- * 
  * 依存関係:
  * - ESP-Arduino >= V3.2
  * - M5Unified >= 0.2.10
@@ -23,7 +13,10 @@
 #include <lvgl.h>
 #include "src/ui/ui.h"
 #include "src/ui/screens.h"
+#include "src/ui/vars.h"
+#include "src/ui/eez-flow.h"
 #include <esp_heap_caps.h>
+#include <cstdio>
 
 // ============================================================================
 // 定数定義
@@ -50,6 +43,49 @@ static lv_color_t *g_color_buf = nullptr;
 
 // アプリケーション状態
 static unsigned long g_lastUpdateTime = 0;
+static int32_t g_arc1Value = 0;        // arc1の現在の値（0-100）
+static int32_t g_lastCounter = -1;     // 前回のcounter値（変更検出用）
+
+// ============================================================================
+// Native変数実装
+// ============================================================================
+
+// Native変数: counter（カウンター）
+static int32_t g_counter = 0;
+
+int32_t get_var_counter() {
+    return g_counter;
+}
+
+void set_var_counter(int32_t value) {
+    g_counter = value;
+}
+
+// Native変数: flag（フラグ）
+static bool g_flag = false;
+
+bool get_var_flag() {
+    return g_flag;
+}
+
+void set_var_flag(bool value) {
+    g_flag = value;
+}
+
+// Native変数: light（画面の明るさ 0-255）
+static int32_t g_light = 255;
+
+int32_t get_var_light() {
+    return g_light;
+}
+
+void set_var_light(int32_t value) {
+    g_light = value;
+    // 値の範囲を制限して画面の明るさを更新
+    if (g_light < 0) g_light = 0;
+    if (g_light > 255) g_light = 255;
+    M5.Display.setBrightness(g_light);
+}
 
 // ============================================================================
 // LVGLコールバック関数
@@ -184,12 +220,47 @@ void initLvglTouch()
 // ============================================================================
 // アプリケーション機能
 // ============================================================================
+
+/**
+ * @brief arc1の値を自動更新
+ * 
+ * flagがtrueの時に、arc1の値を0-100まで自動更新します。
+ */
+static void updateArc1()
+{
+    if (!get_var_flag()) {
+        return;
+    }
+    
+    g_arc1Value++;
+    if (g_arc1Value > 100) {
+        g_arc1Value = 0;  // 100に達したら0に戻す（ループ）
+    }
+    lv_arc_set_value(objects.arc1, g_arc1Value);
+}
+
+/**
+ * @brief counterの値をtext_areaに表示
+ * 
+ * counterの値が変更された場合のみ、text_areaに表示を更新します。
+ */
+static void updateCounterDisplay()
+{
+    int32_t counter = get_var_counter();
+    if (counter == g_lastCounter) {
+        return;
+    }
+    
+    g_lastCounter = counter;
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "%ld", (long)counter);
+    lv_textarea_set_text(objects.text_area, buffer);
+}
+
 /**
  * @brief アプリケーション更新処理
  * 
  * 定期的に実行されるアプリケーション固有の処理を記述します。
- * この関数をカスタマイズして独自の機能を追加してください。
- * 
  */
 void updateApplication()
 {
@@ -202,62 +273,52 @@ void updateApplication()
     
     g_lastUpdateTime = currentTime;
     
-    // ここにアプリケーション固有の処理を追加
-    // 例: センサー読み取り、データ送信、状態更新など
+    // 各機能の更新
+    updateArc1();
+    updateCounterDisplay();
 }
 
-// ============================================================================
-// Arduino標準関数
-// ============================================================================
+/**
+ * @brief エラー表示（無限ループ）
+ * 
+ * 初期化エラー時に赤画面を点滅させます。
+ */
+static void showFatalError()
+{
+    while(1) {
+        M5.Display.fillScreen(TFT_RED);
+        delay(500);
+        M5.Display.fillScreen(TFT_BLACK);
+        delay(500);
+    }
+}
 
 void setup()
 {
-    // ============================
-    // M5Unified初期化
-    // ============================
     auto cfg = M5.config();
     M5.begin(cfg);
     delay(100);
     
-    // ============================
     // LVGL初期化
-    // ============================
     if (!initLvglDisplay()) {
-        while(1) { 
-            M5.Display.fillScreen(TFT_RED);
-            delay(500);
-            M5.Display.fillScreen(TFT_BLACK);
-            delay(500);
-        }
+        showFatalError();
     }
-    initLvglTouch();
     
-    // ============================
-    // EEZ-Studio UI初期化
-    // ============================
-    ui_init();
+    initLvglTouch();
+    ui_init();  // EEZ-Studio UI初期化
 }
 
-/**
- * @brief メインループ
- * 
- * 継続的に実行されます。
- * LVGL、EEZ Flow、アプリケーション処理を定期的に更新します。
- */
 void loop()
 {
-    // M5Unifiedの更新（ボタン、タッチなど）
-    M5.update();
+    M5.update();                // M5Unifiedの更新（ボタン、タッチなど）
+    lv_timer_handler();         // LVGLタイマーハンドラ（UIの更新）    
+    ui_tick();                  // EEZ Flow Tickハンドラ（Flow言語の実行）   
+    updateApplication();        // アプリケーション機能の更新
     
-    // LVGLタイマーハンドラ（UIの更新）
-    lv_timer_handler();
+    // flagがtrueの時は、arc1の値を再設定（ui_tick()で上書きされないように）
+    if (get_var_flag()) {
+        lv_arc_set_value(objects.arc1, g_arc1Value);
+    }
     
-    // EEZ Flow Tickハンドラ（Flow言語の実行）
-    ui_tick();
-    
-    // アプリケーション機能の更新
-    updateApplication();
-    
-    // LVGL処理のためのわずかな遅延
     delay(LVGL_TIMER_DELAY_MS);
 }
