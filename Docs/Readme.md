@@ -11,6 +11,8 @@ GUI を用いた以下のようなアプリケーションを提供していま�
 
 - LVGL を使用したタッチ対応の高機能 GUI（ボタン・スライダー・リストなど）
 - EEZ Studio でデザインした UI の実装例
+- **EEZ 01 - Canvas お絵かき**（EEZ_01）: Canvas 指描き ＋ Button1 でクリア
+- **EEZ 02 - Chart デモ**（EEZ_02）: Chart デモグラフ ＋ slider1 で画面明るさ制御（0～255、初期値 255）
 - Native変数の実装例
 - WiFi連携によるNTP時刻同期アプリケーション
 
@@ -22,7 +24,7 @@ GUI を用いた以下のようなアプリケーションを提供していま�
 
 ```
 Tab5_GUI/
-├── EEZ_Template/                # EEZ Studio開発用テンプレート
+├── EEZ_Template/                # EEZ テンプレート（開発用ベース）
 │   ├── EEZ_Template.ino         # メインプログラム
 │   ├── LV8wF_Template.eez-project # EEZ Studio プロジェクト
 │   ├── lv_conf.h                # LVGL 設定ファイル
@@ -39,7 +41,21 @@ Tab5_GUI/
 │           ├── styles.c, styles.h # スタイル定義
 │           ├── fonts.h, structs.h # その他の定義ファイル
 │
-├── LV8wF_Clock/                 # WiFi/NTP時計アプリケーション
+├── EEZ_01/                      # EEZ 01 - Canvas お絵かき
+│   ├── EEZ_01.ino               # メインプログラム（Canvas描画・Button1クリア）
+│   ├── EEZ_01.eez-project       # EEZ Studio プロジェクト
+│   ├── lv_conf.h                # LVGL 設定
+│   ├── README.md                # プロジェクト概要・Template変更点
+│   └── src/ui/                  # EEZ Studio 生成ファイル
+│
+├── EEZ_02/                      # EEZ 02 - Chart デモ
+│   ├── EEZ_02.ino               # メインプログラム（chart1デモ・slider1明るさ）
+│   ├── EEZ_02.eez-project       # EEZ Studio プロジェクト
+│   ├── lv_conf.h                # LVGL 設定
+│   ├── README.md                # プロジェクト概要・Template変更点
+│   └── src/ui/                  # EEZ Studio 生成ファイル
+│
+├── LV8wF_Clock/                 # LV8wF 時計（WiFi/NTP）
 │   ├── LV8wF_Clock.ino          # メインプログラム
 │   ├── LV8wF_Clock.eez-project # EEZ Studio プロジェクト
 │   ├── lv_conf.h                # LVGL 設定ファイル
@@ -56,7 +72,7 @@ Tab5_GUI/
 │           ├── fonts.h, structs.h
 │           └── vars.h
 │
-├── LV8wF_Native/                # Native変数実装サンプル
+├── LV8wF_Native/                # LV8wF Native 変数
 │   ├── LV8wF_Native.ino         # メインプログラム
 │   ├── LV8wF_Native.eez-project # EEZ Studio プロジェクト
 │   ├── lv_conf.h                # LVGL 設定ファイル
@@ -115,26 +131,28 @@ Arduino IDE または Arduino CLI で以下の設定を使用してください�
 
 ---
 
-## 📊 プロジェクト一覧（全3個）
+## 📊 プロジェクト一覧（全5個）
 
 ### 開発テンプレート（1個）
-| No. | プログラム名 | 開発ツール | 主要機能 |
-|-----|-------------|-----------|----------|
-| 1 | EEZ_Template | EEZ Studio | EEZ Studio開発用テンプレート（シンプル構造、カスタマイズ容易） |
+| No. | 表示名 | フォルダ名 | 開発ツール | 主要機能 |
+|-----|--------|------------|-----------|----------|
+| 1 | EEZ テンプレート | EEZ_Template | EEZ Studio | 開発用ベース（シンプル構造、カスタマイズ容易） |
 
-### LVGL GUIアプリケーション（2個）
-| No. | プログラム名 | 開発ツール | 主要機能 |
-|-----|-------------|-----------|----------|
-| 2 | LV8wF_Clock | EEZ Studio | WiFi/NTP時計アプリ（WiFi接続、NTP時刻同期、リアルタイム時計表示） |
-| 3 | LV8wF_Native | EEZ Studio | Native変数実装サンプル（counter、flag、light変数、自動更新機能） |
+### LVGL GUIアプリケーション（4個）
+| No. | 表示名 | フォルダ名 | 開発ツール | 主要機能 |
+|-----|--------|------------|-----------|----------|
+| 2 | EEZ 01 - Canvas お絵かき | EEZ_01 | EEZ Studio | Canvas 指描き、Button1 でクリア、滑らか描画 |
+| 3 | EEZ 02 - Chart デモ | EEZ_02 | EEZ Studio | Chart デモグラフ（2系列）、slider1 で画面明るさ 0～255（初期値 255） |
+| 4 | LV8wF 時計 | LV8wF_Clock | EEZ Studio | WiFi/NTP時計（WiFi接続、NTP時刻同期、リアルタイム時計表示） |
+| 5 | LV8wF Native 変数 | LV8wF_Native | EEZ Studio | Native変数サンプル（counter、flag、light変数、自動更新機能） |
 
 ---
 
 ## 🎨 サンプルアプリケーション
 
-### EEZ_Template
+### EEZ テンプレート（EEZ_Template）
 
-**EEZ Studio開発用テンプレート**
+**開発用ベース**
 
 - LVGL + EEZ Studio Flowの統合テンプレート
 - シンプルで拡張しやすい最小限の実装
@@ -161,7 +179,38 @@ Arduino IDE または Arduino CLI で以下の設定を使用してください�
 
 詳細は [`../EEZ_Template/README.md`](../EEZ_Template/README.md) を参照してください。
 
-### LV8wF_Clock
+### EEZ 01 - Canvas お絵かき（EEZ_01）
+
+**Canvas 指描きアプリケーション**
+
+- EEZ テンプレートをベースに Canvas 指描きと Button1 クリアを追加
+- Canvas1 上で指で線を描画（黒・太さ 4px、滑らか描画）
+- Button1 を押すと Canvas1 を白でクリア（EEZ アクション `action_clear_canvas1`）
+- LVGL の Image 系はデフォルトでクリック無効のため、Canvas に `LV_OBJ_FLAG_CLICKABLE` を付与
+- 更新間隔・タッチ読み取り間隔を短くして線を滑らかに表示
+
+**主な機能**:
+- Canvas 指描き（SPIRAM バッファ、991×676）
+- Button1 でクリア
+- 滑らか描画のための LVGL 設定（ループ遅延・入力読み取り間隔）
+
+詳細は [`../EEZ_01/README.md`](../EEZ_01/README.md) を参照してください。
+
+### EEZ 02 - Chart デモ（EEZ_02）
+
+**Chart デモ ＋ 画面明るさ制御アプリケーション**
+
+- EEZ テンプレートをベースに chart1 デモグラフと slider1 で画面明るさ制御を追加
+- chart1: 起動時に赤・青 2 系列の折れ線グラフ（各 24 点）を表示
+- slider1: 値（0～255）で画面の明るさを変更。初期値 255。`M5.Display.setBrightness()` で反映
+
+**主な機能**:
+- chart1 デモグラフ（Y 軸 0～100、分割線 横 5・縦 8）
+- slider1 で画面明るさ制御（0～255、初期値 255）
+
+詳細は [`../EEZ_02/README.md`](../EEZ_02/README.md) を参照してください。
+
+### LV8wF 時計（LV8wF_Clock）
 
 **WiFi/NTP時計アプリケーション**
 
@@ -186,7 +235,7 @@ Arduino IDE または Arduino CLI で以下の設定を使用してください�
 
 詳細は [`../LV8wF_Clock/README.md`](../LV8wF_Clock/README.md) を参照してください。
 
-### LV8wF_Native
+### LV8wF Native 変数（LV8wF_Native）
 
 **Native変数実装サンプルアプリケーション**
 
@@ -250,7 +299,7 @@ arduino-cli monitor -p /dev/cu.usbmodem21201
 
 ### サンプル別参考リンク
 
-#### EEZ_Template, LV8wF_Clock, LV8wF_Native
+#### EEZ テンプレート、EEZ 01 - Canvas お絵かき、EEZ 02 - Chart デモ、LV8wF 時計、LV8wF Native 変数
 
 - **開発**: オリジナル実装（2026年1月）
 - **EEZ Studio 公式サイト**: [EEZ Studio](https://www.envox.eu/eez-studio/)
@@ -260,7 +309,7 @@ arduino-cli monitor -p /dev/cu.usbmodem21201
 - **LVGL チュートリアル**: [LVGL Getting Started](https://docs.lvgl.io/master/get-started/index.html)
 - **M5Stack公式ドキュメント**: [M5Stack Tab5 Documentation](https://docs.m5stack.com/)
 
-EEZ Studio と Flow 機能を使用したアプリケーション開発のテンプレートとリファレンス実装です。WiFi/NTP時刻同期、Native変数の実装など、実用的な機能の実装例を提供しています。
+EEZ Studio と Flow 機能を使用したアプリケーション開発のテンプレートとリファレンス実装です。EEZ 01 - Canvas お絵かき、EEZ 02 - Chart デモ、LV8wF 時計（WiFi/NTP）、LV8wF Native 変数など、実用的な機能の実装例を提供しています。
 
 ---
 

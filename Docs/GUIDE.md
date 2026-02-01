@@ -61,7 +61,7 @@
 
 1. Arduino IDEを起動
 2. **ファイル** → **開く**
-3. `EEZ_Template/EEZ_Template.ino`を選択
+3. **EEZ テンプレート**（EEZ_Template）の `EEZ_Template/EEZ_Template.ino` を選択
 4. **開く**をクリック
 
 #### 2-2. ボード設定
@@ -660,7 +660,7 @@ void set_var_flag(bool value) {
 }
 ```
 
-EEZ StudioでNative変数を定義する方法は、[LV8wF_Native](../LV8wF_Native/README.md)を参照してください。
+EEZ StudioでNative変数を定義する方法は、[LV8wF Native 変数](../LV8wF_Native/README.md)（LV8wF_Native）を参照してください。
 
 ---
 
@@ -908,10 +908,12 @@ EEZ Studioで設計 → エクスポート → Arduinoでコンパイル → Tab
 ```
 
 **次のステップ**:
-- [README.md](README.md) - プロジェクト概要
+- [Readme.md](Readme.md) - プロジェクト概要
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - トラブルシューティング
-- [LV8wF_Clock](../LV8wF_Clock/README.md) - WiFi/NTP実装例
-- [LV8wF_Native](../LV8wF_Native/README.md) - Native変数実装例
+- [EEZ 01 - Canvas お絵かき](../EEZ_01/README.md)（EEZ_01）- Canvas 指描き・Button1 クリア実装例
+- [EEZ 02 - Chart デモ](../EEZ_02/README.md)（EEZ_02）- Chart デモ・slider1 明るさ制御実装例
+- [LV8wF 時計](../LV8wF_Clock/README.md)（LV8wF_Clock）- WiFi/NTP実装例
+- [LV8wF Native 変数](../LV8wF_Native/README.md)（LV8wF_Native）- Native変数実装例
 
 このテンプレートをベースに、独自のアプリケーションを自由に開発してください！
 
