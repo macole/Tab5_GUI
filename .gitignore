@@ -1,2 +1,5 @@
 # macOS
 .DS_Store
+
+# VS Code / Cursor workspace (ローカル設定)
+*.code-workspace

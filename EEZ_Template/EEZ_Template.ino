@@ -35,10 +35,10 @@
 #define SCREEN_BUFFER_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
 
 // LVGL設定
-#define LVGL_TIMER_DELAY_MS 50   // LVGLタイマー遅延（ミリ秒）
+#define LVGL_TIMER_DELAY_MS 5   // LVGLタイマー遅延（ミリ秒）
 
 // アプリケーション設定（カスタマイズ可能）
-#define APP_UPDATE_INTERVAL_MS 100  // アプリケーション更新間隔
+#define APP_UPDATE_INTERVAL_MS 50  // アプリケーション更新間隔
 
 // ============================================================================
 // グローバル変数
@@ -212,16 +212,11 @@ void updateApplication()
 
 void setup()
 {
-    // ============================
-    // M5Unified初期化
-    // ============================
-    auto cfg = M5.config();
+    auto cfg = M5.config();    // M5Unified初期化
     M5.begin(cfg);
     delay(100);
     
-    // ============================
     // LVGL初期化
-    // ============================
     if (!initLvglDisplay()) {
         while(1) { 
             M5.Display.fillScreen(TFT_RED);
@@ -232,32 +227,14 @@ void setup()
     }
     initLvglTouch();
     
-    // ============================
-    // EEZ-Studio UI初期化
-    // ============================
-    ui_init();
+    ui_init();    // EEZ-Studio UI初期化
 }
 
-/**
- * @brief メインループ
- * 
- * 継続的に実行されます。
- * LVGL、EEZ Flow、アプリケーション処理を定期的に更新します。
- */
 void loop()
 {
-    // M5Unifiedの更新（ボタン、タッチなど）
-    M5.update();
-    
-    // LVGLタイマーハンドラ（UIの更新）
+    M5.update();    // M5Unifiedの更新（ボタン、タッチなど）
     lv_timer_handler();
-    
-    // EEZ Flow Tickハンドラ（Flow言語の実行）
-    ui_tick();
-    
-    // アプリケーション機能の更新
+    ui_tick();    // EEZ Flow Tickハンドラ（Flow言語の実行）
     updateApplication();
-    
-    // LVGL処理のためのわずかな遅延
-    delay(LVGL_TIMER_DELAY_MS);
+    delay(LVGL_TIMER_DELAY_MS);    // LVGL処理のためのわずかな遅延
 }
